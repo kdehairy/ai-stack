@@ -1,7 +1,7 @@
 services:
 
   # ─── llama-server ───────────────────────────────────────────────────────────
-  llama-coder:
+  llama:
     build:
       context: .
       dockerfile: Dockerfile
@@ -11,53 +11,7 @@ services:
         AI_GID: ${AI_GID}
     image: llama-cpp-rocm:latest
     pull_policy: never
-    container_name: llama-coder
-    restart: unless-stopped
-    devices:
-      - /dev/kfd:/dev/kfd
-      - /dev/dri:/dev/dri
-    group_add:
-      - video
-      - render
-    volumes:
-      - ${LLAMA_MODEL_PATH}:/data/models/llamacpp:ro
-    ports:
-      - "${LLAMA_HOST}:${LLAMA_CODER_PORT}:8080"
-    environment:
-      - ROCR_VISIBLE_DEVICES=${GPU_DEVICE_IDX}
-    command: >
-      --model /data/models/llamacpp/${LLAMA_CODER_MODEL_FILE}
-      --host 0.0.0.0
-      --port 8080
-      --metrics
-      --ctx-size ${LLAMA_CTX}
-      --n-gpu-layers ${LLAMA_GPU_LAYERS}
-      --split-mode none
-      --jinja
-      --temp 0.7
-      --min-p 0.0
-      --top-p 0.8
-      --top-k 20
-      --repeat-penalty 1.05
-      -ot ".ffn_.*_exps.=CPU"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-
-  llama-reasoner:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        LLAMA_VERSION: ${LLAMA_VERSION}
-        AI_UID: ${AI_UID}
-        AI_GID: ${AI_GID}
-    image: llama-cpp-rocm:latest
-    pull_policy: never
-    container_name: llama-reasoner
+    container_name: llama
     restart: unless-stopped
     devices:
       - /dev/kfd:/dev/kfd
@@ -76,16 +30,19 @@ services:
       --host 0.0.0.0
       --port 8080
       --metrics
-      --ctx-size ${LLAMA_CTX}
       --n-gpu-layers ${LLAMA_GPU_LAYERS}
       --split-mode none
+      --fit on
+      --flash-attn on
+      --parallel 1
       --jinja
-      --temp 0.6
-      --min-p 0.0
+      --ctx-size ${LLAMA_CTX}
+      --seed 3407
+      --temp 1.0
+      --min-p 0.01
       --top-p 0.95
       --top-k 20
-      --repeat-penalty 1.05
-      -ot ".ffn_.*_exps.=CPU"
+      --repeat-penalty 1.0
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -122,10 +79,10 @@ services:
     ports:
       - "${OPENWEBUI_HOST}:${OPENWEBUI_PORT}:8080"
     environment:
-      - OPENAI_API_BASE_URL=http://llama-reasoner:8080/v1
+      - OPENAI_API_BASE_URL=http://llama:8080/v1
       - OPENAI_API_KEY=none
     depends_on:
-      llama-reasoner:
+      llama:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]

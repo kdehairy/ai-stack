@@ -12,7 +12,6 @@ WorkingDirectory=/data/ai-stack
 
 EnvironmentFile=/data/ai-stack/.env
 
-ExecStartPre=/data/ai-stack/start-llama.sh --dry-run || true
 ExecStart=/data/ai-stack/start-llama.sh --remove-orphans
 ExecStop=/usr/bin/docker compose down
 

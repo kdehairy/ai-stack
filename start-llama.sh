@@ -2,20 +2,29 @@
 # start-llama.sh
 # Dynamically finds the RX 7900 XTX ROCm device index and starts the AI stack.
 
-set -euo pipefail
+set -eu
 
 COMPOSE_FILE="$(dirname "$0")/docker-compose.yml"
 
 echo "Finding discrete GPU..."
 
-GPU_DEVICE_IDX=$(rocm-smi --showbus 2>/dev/null \
-  | grep "$(lspci | grep -i 'RX 7900' | cut -d' ' -f1)" \
+BUS_ID=$(lspci 2>/dev/null | grep -i 'RX 7900' | cut -d' ' -f1)
+if [[ -z "$BUS_ID" ]]; then
+	echo "ERROR: Could not find RX 7900 XTX in lspci output." >&2
+	exit 1
+fi
+
+echo "Found RX 7900 XTX at PCIe bus: $BUS_ID"
+
+GPU_DEVICE_IDX=$(/opt/rocm/bin/rocm-smi --showbus 2>/dev/null \
+  | grep "$BUS_ID" \
   | tr -d '[:blank:] :' \
   | tr '[]' ':' \
   | cut -d':' -f2)
 
 if [[ -z "$GPU_DEVICE_IDX" ]]; then
   echo "ERROR: Could not find RX 7900 XTX. Check lspci and rocm-smi output." >&2
+	echo "rocm-smi output:" >&2
   exit 1
 fi
 
