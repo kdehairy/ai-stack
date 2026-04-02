@@ -1,0 +1,1006 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "Your Prometheus datasource",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "10.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "bargauge",
+      "name": "Bar gauge",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": []
+  },
+  "description": "AI Stack monitoring dashboard for llama.cpp inference server, AMD RX 7900 XTX, and host system. Covers GPU VRAM/compute/thermals, LLM token throughput, MoE RAM offloading, CPU, storage, and system health.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "GPU",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "How much of the 24GB VRAM is allocated vs free. With two MoE models loaded simultaneously expect ~16GB used. Threshold at 23GB warns before OOM. If used suddenly drops, a model crashed or was unloaded.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "gbytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 22 },
+              { "color": "red", "value": 23.5 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "gpu_used_vram{gpu_id=\"0\"} / 1024",
+          "legendFormat": "Used GB"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "gpu_free_vram{gpu_id=\"0\"} / 1024",
+          "legendFormat": "Free GB"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "gpu_total_vram{gpu_id=\"0\"} / 1024",
+          "legendFormat": "Total GB (reference)"
+        }
+      ],
+      "title": "VRAM Usage",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "gfx_activity = shader/compute engine utilization — how busy the GPU cores are doing matrix multiply. umc_activity = memory controller utilization — how hard the VRAM bus is working. For MoE models umc_activity is often the more meaningful number because the bottleneck is weight bandwidth, not raw compute. If gfx is high but umc is low, the GPU is compute-bound. If umc is high, it is memory-bandwidth bound (normal for large models).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 1 },
+      "id": 2,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "gpu_gfx_activity{gpu_id=\"0\"}",
+          "legendFormat": "Compute (gfx) %"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "gpu_umc_activity{gpu_id=\"0\"}",
+          "legendFormat": "Memory Controller %"
+        }
+      ],
+      "title": "GPU Compute & Memory Activity",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "gpu_power_usage = instantaneous draw. gpu_average_package_power = smoothed average, less spiky. power_cap = the configured TDP limit (default 315W, hardware max 350W). At idle expect ~16W. Under full inference load expect 180-280W. If power_usage is consistently at the cap, the GPU is power-limited and you could raise the cap to node_hwmon_power_cap_max_watt (350W) for more throughput.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "watt"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Power Cap (W)" },
+            "properties": [
+              { "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } },
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 1 },
+      "id": 3,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "gpu_power_usage{gpu_id=\"0\"}",
+          "legendFormat": "Instantaneous (W)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "gpu_average_package_power{gpu_id=\"0\"}",
+          "legendFormat": "Average Package (W)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_hwmon_power_cap_watt{chip=\"0000:02:00_0_0000:03:00_0\",sensor=\"power1\"}",
+          "legendFormat": "Power Cap (W)"
+        }
+      ],
+      "title": "GPU Power",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "edge = die surface temperature, generally the lowest reading. junction = hotspot temperature — the single hottest point on the die. Thermal throttling begins at ~110C, emergency shutdown at ~115C. Keep junction below 95C under sustained inference load. memory = GDDR6 temperature — above 95C the memory clocks reduce which directly hurts token throughput since VRAM bandwidth is the primary inference bottleneck.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "celsius",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 85 },
+              { "color": "red", "value": 100 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 9 },
+      "id": 4,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "gpu_edge_temperature{gpu_id=\"0\"}",
+          "legendFormat": "Edge °C"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "gpu_junction_temperature{gpu_id=\"0\"}",
+          "legendFormat": "Junction/Hotspot °C"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "gpu_memory_temperature{gpu_id=\"0\"}",
+          "legendFormat": "Memory °C"
+        }
+      ],
+      "title": "GPU Temperatures",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "PCIe bandwidth between the GPU and the rest of the system. This is the data highway for MoE expert weight fetching — when the GPU needs an expert not resident in VRAM, it fetches it over PCIe from RAM. You are at PCIe 4.0 x16 = ~31 GB/s theoretical max. A spike here during inference is expected with the -ot flag (MoE experts offloaded to CPU RAM). If this is pegged near maximum, PCIe bandwidth is your inference bottleneck and you should consider reducing expert offloading.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "Mbits/s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 9 },
+      "id": 5,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "pcie_bandwidth{gpu_id=\"0\"}",
+          "legendFormat": "PCIe Bandwidth (Mb/s)"
+        }
+      ],
+      "title": "PCIe Bandwidth (MoE Expert Transfer)",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "GTT (Graphics Translation Table) is system RAM that the GPU has mapped and can DMA directly without CPU involvement. With -ot \".ffn_.*_exps.=CPU\" your MoE expert weights should live here — expect 10-15 GB used when a model is loaded. If gpu_used_gtt stays near 0 while the model is running, the experts are going into regular malloc RAM instead (still works, may be slightly slower). Total GTT available is ~30 GB.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "gbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 9 },
+      "id": 6,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "gpu_used_gtt{gpu_id=\"0\"} / 1024",
+          "legendFormat": "GTT Used GB (MoE experts in RAM)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "gpu_free_gtt{gpu_id=\"0\"} / 1024",
+          "legendFormat": "GTT Free GB"
+        }
+      ],
+      "title": "GTT Memory (System RAM Mapped for GPU)",
+      "type": "timeseries"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 },
+      "id": 101,
+      "title": "LLM Inference (llama.cpp)",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Tokens generated per second during the decode/output phase — this is the number users experience as typing speed. Port 8081 = coder model (Qwen3-Coder-30B-A3B), port 8082 = reasoner model (Qwen3-30B-A3B with thinking mode). Typical range with your setup: 15-40 tok/s. A sustained drop here indicates GPU thermal throttling, VRAM pressure, PCIe bandwidth saturation from MoE fetches, or RAM exhaustion causing swap activity.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "short",
+          "custom2": {}
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 18 },
+      "id": 7,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "llamacpp:predicted_tokens_seconds{instance=\"ai.local:8081\"}",
+          "legendFormat": "Coder (8081) tok/s"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "llamacpp:predicted_tokens_seconds{instance=\"ai.local:8082\"}",
+          "legendFormat": "Reasoner (8082) tok/s"
+        }
+      ],
+      "title": "Token Generation Speed (decode phase)",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Tokens processed per second during the prefill phase — digesting your input prompt and any context/file maps before generation begins. Usually much faster than decode (100-500 tok/s). Slow prefill means a very large context or KV cache pressure. In aider architect mode with large file maps this phase can take several seconds.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 18 },
+      "id": 8,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "llamacpp:prompt_tokens_seconds{instance=\"ai.local:8081\"}",
+          "legendFormat": "Coder (8081) tok/s"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "llamacpp:prompt_tokens_seconds{instance=\"ai.local:8082\"}",
+          "legendFormat": "Reasoner (8082) tok/s"
+        }
+      ],
+      "title": "Prompt Processing Speed (prefill phase)",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "requests_processing = actively generating tokens right now (normally 0 or 1 for personal use). requests_deferred = waiting in queue because the server is busy with another request. llama.cpp processes one request at a time; if deferred grows it means aider or OpenWebUI sent multiple concurrent requests. This should be rare in single-user personal use.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 18 },
+      "id": 9,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "llamacpp:requests_processing{instance=\"ai.local:8081\"}",
+          "legendFormat": "Coder processing"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "llamacpp:requests_deferred{instance=\"ai.local:8081\"}",
+          "legendFormat": "Coder deferred (queued)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "llamacpp:requests_processing{instance=\"ai.local:8082\"}",
+          "legendFormat": "Reasoner processing"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "llamacpp:requests_deferred{instance=\"ai.local:8082\"}",
+          "legendFormat": "Reasoner deferred (queued)"
+        }
+      ],
+      "title": "Request Queue",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Fraction of the --ctx-size 65536 token context window currently occupied (shown as percentage). When this approaches 100% llama.cpp starts evicting the oldest tokens from the KV cache to make room, which degrades coherence in long sessions. In aider architect mode with large file maps this can fill quickly. The reasoner model accumulates extended thinking blocks which also consume context.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 80 },
+              { "color": "red", "value": 95 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 26 },
+      "id": 10,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "llamacpp:kv_cache_usage_ratio{instance=\"ai.local:8081\"} * 100",
+          "legendFormat": "Coder KV Cache %"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "llamacpp:kv_cache_usage_ratio{instance=\"ai.local:8082\"} * 100",
+          "legendFormat": "Reasoner KV Cache %"
+        }
+      ],
+      "title": "KV Cache Usage (context window fill %)",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Total tokens predicted (generated) since server start — a cumulative workload counter. The rate of this tells you average inference activity over time. Use rate(llamacpp:tokens_predicted_total[5m]) for throughput over a window.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 26 },
+      "id": 11,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(llamacpp:tokens_predicted_total{instance=\"ai.local:8081\"}[5m])",
+          "legendFormat": "Coder avg tok/s (5m)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(llamacpp:tokens_predicted_total{instance=\"ai.local:8082\"}[5m])",
+          "legendFormat": "Reasoner avg tok/s (5m)"
+        }
+      ],
+      "title": "Average Token Throughput (5m rate)",
+      "type": "timeseries"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 34 },
+      "id": 102,
+      "title": "RAM — Critical for MoE Offloading",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "MemAvailable = free + reclaimable page cache — the real usable memory number. This must stay above ~8 GB or the kernel starts evicting MoE expert pages, causing them to be re-read from disk and massively degrading inference speed. Cached includes your model weight pages; it will shrink under memory pressure as the kernel reclaims it for other uses.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "gbytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 12 },
+              { "color": "red", "value": 8 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 35 },
+      "id": 12,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_memory_MemAvailable_bytes / 1024^3",
+          "legendFormat": "Available GB"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / 1024^3",
+          "legendFormat": "Used GB"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_memory_Cached_bytes / 1024^3",
+          "legendFormat": "Page Cache GB"
+        }
+      ],
+      "title": "RAM Overview (64 GB total)",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "SwapUsed MUST stay at 0 during inference. Any swap activity means MoE expert weights are being paged to disk which tanks generation speed from ~30 tok/s to potentially <1 tok/s. You currently have ~2 GB swap used at idle — investigate before running inference under memory pressure. Zswap is a compressed RAM cache in front of swap (still in RAM but compressed); better than disk swap but still indicates memory pressure. You already have 2.38 GB in zswap at idle.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "gbytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.5 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 35 },
+      "id": 13,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "(node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) / 1024^3",
+          "legendFormat": "Swap Used GB (should be 0)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_memory_Zswap_bytes / 1024^3",
+          "legendFormat": "Zswap Compressed GB"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_memory_SwapCached_bytes / 1024^3",
+          "legendFormat": "Swap Cached GB"
+        }
+      ],
+      "title": "Swap & Zswap (must be 0 during inference)",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "PSI (Pressure Stall Information) — fraction of time (0.0 to 1.0) that processes were stalled waiting for memory or I/O. memory_stalled = at least one process made zero progress due to memory unavailability. This is your most sensitive MoE RAM pressure indicator. If this rises above 0.1 during inference the kernel is struggling to serve expert weight pages fast enough. io_stalled = completely blocked on disk I/O — should be near 0; a spike means something is hitting disk (swap, log writes, Docker overlays).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.1 },
+              { "color": "red", "value": 0.3 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 35 },
+      "id": 14,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(node_pressure_memory_stalled_seconds_total[1m])",
+          "legendFormat": "Memory Stalled"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(node_pressure_memory_waiting_seconds_total[1m])",
+          "legendFormat": "Memory Waiting"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(node_pressure_io_stalled_seconds_total[1m])",
+          "legendFormat": "I/O Stalled"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(node_pressure_io_waiting_seconds_total[1m])",
+          "legendFormat": "I/O Waiting"
+        }
+      ],
+      "title": "Pressure Stall Index — Memory & I/O (PSI)",
+      "type": "timeseries"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 43 },
+      "id": 103,
+      "title": "CPU — Ryzen 9 9950X",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Overall CPU utilization across all 32 threads. The 9950X handles MoE expert dispatch, KV cache management, tokenisation, and Docker/network overhead. Expect 10-40% CPU usage during active inference even though the GPU is doing matrix math. iowait specifically — time CPUs spent idle waiting for storage I/O. Should be near 0 during inference; elevated iowait means a disk bottleneck (swap activity, model re-reads, Docker overlay writes).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 44 },
+      "id": 15,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[1m])) * 100)",
+          "legendFormat": "CPU Utilization %"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "avg(rate(node_cpu_seconds_total{mode=\"iowait\"}[1m])) * 100",
+          "legendFormat": "iowait %"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "avg(rate(node_cpu_seconds_total{mode=\"system\"}[1m])) * 100",
+          "legendFormat": "system %"
+        }
+      ],
+      "title": "CPU Utilization",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Current CPU clock speed. All 32 cores are on powersave governor — switch to performance governor for inference workloads. On powersave, idle cores park at 624 MHz which slows MoE expert dispatch. On performance, all cores run near the 5.7 GHz boost ceiling. To switch: echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "hertz",
+          "custom2": {}
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 44 },
+      "id": 16,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "avg(node_cpu_scaling_frequency_hertz) / 1e9",
+          "legendFormat": "Avg GHz"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "min(node_cpu_scaling_frequency_hertz) / 1e9",
+          "legendFormat": "Min GHz (parked cores)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "max(node_cpu_scaling_frequency_hertz) / 1e9",
+          "legendFormat": "Max GHz (boost)"
+        }
+      ],
+      "title": "CPU Frequency — WARNING: currently on powersave governor",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Tctl = what most tools report; includes a +27C offset on Zen 5 so 67C here = ~40C actual — use Tccd values for real die temperatures. Tccd1/Tccd2 = actual temperatures of each compute die (16 cores each). CPU Package from ASUS EC = motherboard's measurement of overall package power. VRM = voltage regulator temperature; above 90C causes CPU throttling. Currently at a healthy 45C.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "celsius",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 80 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 44 },
+      "id": 17,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_hwmon_temp_celsius{chip=\"pci0000:00_0000:00:18_3\",sensor=\"temp1\"}",
+          "legendFormat": "Tctl (includes +27C offset)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_hwmon_temp_celsius{chip=\"pci0000:00_0000:00:18_3\",sensor=\"temp3\"}",
+          "legendFormat": "Tccd1 (die 1 actual)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_hwmon_temp_celsius{chip=\"pci0000:00_0000:00:18_3\",sensor=\"temp4\"}",
+          "legendFormat": "Tccd2 (die 2 actual)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_hwmon_temp_celsius{chip=\"platform_asus_ec_sensors\",sensor=\"temp2\"}",
+          "legendFormat": "CPU Package (ASUS EC)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_hwmon_temp_celsius{chip=\"platform_asus_ec_sensors\",sensor=\"temp5\"}",
+          "legendFormat": "VRM"
+        }
+      ],
+      "title": "CPU Temperatures",
+      "type": "timeseries"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 52 },
+      "id": 104,
+      "title": "Storage",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Throughput on sda — the physical disk backing your /data XFS volume where models are stored. During model load you will see a large burst here (loading ~20 GB model file). During inference with -ot flag, if MoE expert pages have been evicted from RAM they will be re-read from disk here — this should not happen during normal operation but will appear if you run out of RAM.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "MBs"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 53 },
+      "id": 18,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(node_disk_read_bytes_total{device=\"sda\"}[1m]) / 1024^2",
+          "legendFormat": "sda Read MB/s (/data)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(node_disk_written_bytes_total{device=\"sda\"}[1m]) / 1024^2",
+          "legendFormat": "sda Write MB/s"
+        }
+      ],
+      "title": "Storage Throughput — /data (sda)",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Throughput on your WD Black SN850X 4TB NVMe (system drive, Docker storage on /data/docker). Reads during inference = Docker overlay activity or swap on NVMe. High write rate = container log writes, Docker layer writes, or swap. This drive is fast (7 GB/s) so it should not be a bottleneck for normal inference, but swap activity here would still hurt.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "MBs"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 53 },
+      "id": 19,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(node_disk_read_bytes_total{device=\"nvme0n1\"}[1m]) / 1024^2",
+          "legendFormat": "NVMe Read MB/s"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(node_disk_written_bytes_total{device=\"nvme0n1\"}[1m]) / 1024^2",
+          "legendFormat": "NVMe Write MB/s"
+        }
+      ],
+      "title": "Storage Throughput — NVMe System Drive (nvme0n1)",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "/data has ~3.8 TB free out of ~3.9 TB total — plenty of space for model downloads. Each Qwen3 model at Q4_K_XL is roughly 20 GB. Alert at 500 GB remaining to give you time before the next download fails mid-transfer. Root / has ~44 GB free — Docker images and system packages live here. Home has ~96 GB free.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "gbytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 200 },
+              { "color": "red", "value": 50 }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 53 },
+      "id": 20,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "text": {}
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_filesystem_avail_bytes{mountpoint=\"/data\"} / 1024^3",
+          "legendFormat": "/data free GB"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_filesystem_avail_bytes{mountpoint=\"/\"} / 1024^3",
+          "legendFormat": "/ free GB"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_filesystem_avail_bytes{mountpoint=\"/home\"} / 1024^3",
+          "legendFormat": "/home free GB"
+        }
+      ],
+      "title": "Filesystem Free Space",
+      "type": "bargauge"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 61 },
+      "id": 105,
+      "title": "System Health",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Load average = average number of runnable + uninterruptible processes over the time window. Your system has 32 threads so load of 32 means all threads are fully occupied. Sustained load above 32 means processes are queuing for CPU time. During inference with aider architect+editor mode you may see load of 4-8 which is normal.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 24 },
+              { "color": "red", "value": 32 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 62 },
+      "id": 21,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_load1",
+          "legendFormat": "1m load"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_load5",
+          "legendFormat": "5m load"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_load15",
+          "legendFormat": "15m load"
+        }
+      ],
+      "title": "Load Average (32 threads total)",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "WiFi is your active network interface (wlan0 — the br-64d067d8570a bridge serves Docker containers). Useful when OpenWebUI is streaming responses to your phone or tablet over LAN. Large receive spikes = downloading model updates or pulling Docker images. Large transmit spikes = streaming a long generated response to a client.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "MBs"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 62 },
+      "id": 22,
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(node_network_receive_bytes_total{device=\"wlan0\"}[1m]) / 1024^2",
+          "legendFormat": "WiFi RX MB/s"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(node_network_transmit_bytes_total{device=\"wlan0\"}[1m]) / 1024^2",
+          "legendFormat": "WiFi TX MB/s"
+        }
+      ],
+      "title": "Network Throughput (WiFi)",
+      "type": "timeseries"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "NVMe temperature — currently a cool 31.85C. Most NVMe drives throttle reads at 70-75C causing sudden drops in sequential read speed. This would hurt model load time significantly. The WD Black SN850X has active thermal management; keep it below 65C for best sustained throughput. GPU ECC uncorrectable errors must always be 0 — any non-zero value indicates a hardware memory fault that could silently corrupt model weights and produce garbage output.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 60 },
+              { "color": "red", "value": 70 }
+            ]
+          },
+          "unit": "celsius",
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "GPU ECC Uncorrectable Errors" },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "red", "value": 1 }
+                  ]
+                }
+              },
+              { "id": "unit", "value": "short" }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 62 },
+      "id": 23,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_hwmon_temp_celsius{chip=\"nvme_nvme0\",sensor=\"temp1\"}",
+          "legendFormat": "NVMe Temp °C"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "node_hwmon_temp_celsius{chip=\"platform_asus_ec_sensors\",sensor=\"temp3\"}",
+          "legendFormat": "Motherboard °C"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "gpu_ecc_uncorrect_total{gpu_id=\"0\"}",
+          "legendFormat": "GPU ECC Uncorrectable Errors"
+        }
+      ],
+      "title": "NVMe Temp / Motherboard Temp / GPU ECC",
+      "type": "stat"
+    }
+
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "tags": ["ai", "llama.cpp", "amd", "gpu", "inference"],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource",
+        "label": "Prometheus Datasource"
+      }
+    ]
+  },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "AI Stack — llama.cpp + RX 7900 XTX",
+  "uid": "ai-stack-v1",
+  "version": 1,
+  "weekStart": ""
+}

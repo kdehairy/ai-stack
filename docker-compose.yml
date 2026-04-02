@@ -1,0 +1,167 @@
+services:
+
+  # ─── llama-server ───────────────────────────────────────────────────────────
+  llama-coder:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        LLAMA_VERSION: ${LLAMA_VERSION}
+        AI_UID: ${AI_UID}
+        AI_GID: ${AI_GID}
+    image: llama-cpp-rocm:latest
+    pull_policy: never
+    container_name: llama-coder
+    restart: unless-stopped
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+      - render
+    volumes:
+      - ${LLAMA_MODEL_PATH}:/data/models/llamacpp:ro
+    ports:
+      - "${LLAMA_HOST}:${LLAMA_CODER_PORT}:8080"
+    environment:
+      - ROCR_VISIBLE_DEVICES=${GPU_DEVICE_IDX}
+    command: >
+      --model /data/models/llamacpp/${LLAMA_CODER_MODEL_FILE}
+      --host 0.0.0.0
+      --port 8080
+      --metrics
+      --ctx-size ${LLAMA_CTX}
+      --n-gpu-layers ${LLAMA_GPU_LAYERS}
+      --split-mode none
+      --jinja
+      --temp 0.7
+      --min-p 0.0
+      --top-p 0.8
+      --top-k 20
+      --repeat-penalty 1.05
+      -ot ".ffn_.*_exps.=CPU"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  llama-reasoner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        LLAMA_VERSION: ${LLAMA_VERSION}
+        AI_UID: ${AI_UID}
+        AI_GID: ${AI_GID}
+    image: llama-cpp-rocm:latest
+    pull_policy: never
+    container_name: llama-reasoner
+    restart: unless-stopped
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+      - render
+    volumes:
+      - ${LLAMA_MODEL_PATH}:/data/models/llamacpp:ro
+    ports:
+      - "${LLAMA_HOST}:${LLAMA_REASONER_PORT}:8080"
+    environment:
+      - ROCR_VISIBLE_DEVICES=${GPU_DEVICE_IDX}
+    command: >
+      --model /data/models/llamacpp/${LLAMA_REASONER_MODEL_FILE}
+      --host 0.0.0.0
+      --port 8080
+      --metrics
+      --ctx-size ${LLAMA_CTX}
+      --n-gpu-layers ${LLAMA_GPU_LAYERS}
+      --split-mode none
+      --jinja
+      --temp 0.6
+      --min-p 0.0
+      --top-p 0.95
+      --top-k 20
+      --repeat-penalty 1.05
+      -ot ".ffn_.*_exps.=CPU"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ─── SearXNG ────────────────────────────────────────────────────────────────
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    user: "${AI_UID}:${AI_GID}"
+    volumes:
+      - ./searxng/config:/etc/searxng:ro
+    ports:
+      - "${SEARXNG_HOST}:${SEARXNG_PORT}:8080"
+    dns:
+      - 1.1.1.1
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ─── OpenWebUI ──────────────────────────────────────────────────────────────
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openwebui
+    restart: unless-stopped
+    volumes:
+      - openwebui-data:/app/backend/data
+    ports:
+      - "${OPENWEBUI_HOST}:${OPENWEBUI_PORT}:8080"
+    environment:
+      - OPENAI_API_BASE_URL=http://llama-reasoner:8080/v1
+      - OPENAI_API_KEY=none
+    depends_on:
+      llama-reasoner:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      #
+# ─── Node Exporter ──────────────────────────────────────────────────────────
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    pid: host
+    network_mode: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/rootfs
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+  
+  # ─── AMD Device Metrics Exporter ────────────────────────────────────────────
+  amd-device-metrics:
+    image: rocm/device-metrics-exporter:v1.1.0
+    container_name: amd-device-metrics
+    restart: unless-stopped
+    devices:
+      - /dev/dri:/dev/dri
+      - /dev/kfd:/dev/kfd
+    ports:
+      - "0.0.0.0:5000:5000"
+
+volumes:
+  openwebui-data:
+    driver: local

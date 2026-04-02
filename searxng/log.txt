@@ -1,0 +1,990 @@
+{
+  "query": "arch linux",
+  "number_of_results": 0,
+  "results": [
+    {
+      "template": "default.html",
+      "url": "https://archlinux.org/",
+      "title": "Arch Linux",
+      "content": "The Arch Linux Project is currently experiencing an ongoing denial of service attack that primarily impacts our main webpage, the Arch User Repository (AUR), and the Forums. We are aware of the problems that this creates for our end users and will continue to actively work with our hosting provider to mitigate the attack.",
+      "publishedDate": null,
+      "thumbnail": "",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "archlinux.org",
+        "/",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "duckduckgo",
+        "startpage",
+        "brave"
+      ],
+      "positions": [
+        1,
+        1,
+        2
+      ],
+      "score": 7.5,
+      "category": "general"
+    },
+    {
+      "template": "default.html",
+      "url": "https://en.wikipedia.org/wiki/Arch_Linux",
+      "title": "Arch Linux - Wikipedia",
+      "content": "Arch Linux (/ ɑːrtʃ /) [9][10][g] is an open source, rolling release Linux distribution. Arch Linux is kept up-to-date by regularly updating the individual pieces of software that it comprises. [11] It provides monthly \"snapshots\" which are used as installation media. [12][13] Arch Linux is intentionally minimal, and is meant to be configured by the user during installation so they may add ...",
+      "publishedDate": null,
+      "thumbnail": "",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "en.wikipedia.org",
+        "/wiki/Arch_Linux",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "duckduckgo",
+        "startpage",
+        "brave"
+      ],
+      "positions": [
+        2,
+        18,
+        2,
+        3
+      ],
+      "score": 5.555555555555555,
+      "category": "general"
+    },
+    {
+      "template": "default.html",
+      "url": "https://www.reddit.com/r/archlinux/",
+      "title": "r/archlinux - Reddit",
+      "content": "r/archlinux: A subreddit for the Arch Linux user community for support and useful news.",
+      "publishedDate": "2009-01-24T00:00:00",
+      "thumbnail": "",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "www.reddit.com",
+        "/r/archlinux/",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "startpage",
+        "brave"
+      ],
+      "positions": [
+        4,
+        4
+      ],
+      "score": 1.0,
+      "category": "general",
+      "pubdate": "2009-01-24 00:00:00"
+    },
+    {
+      "template": "default.html",
+      "url": "https://archlinux.org/download/",
+      "title": "Arch Linux - Downloads",
+      "content": "Images for installing Arch can be downloaded via BitTorrent or right here in your browser from one of the Arch HTTP(S) mirrors down below.",
+      "publishedDate": null,
+      "thumbnail": "",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "archlinux.org",
+        "/download/",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "startpage",
+        "brave"
+      ],
+      "positions": [
+        6,
+        3
+      ],
+      "score": 1.0,
+      "category": "general"
+    },
+    {
+      "template": "default.html",
+      "title": "Official site",
+      "content": "Arch Linux",
+      "img_src": "",
+      "iframe_src": "",
+      "audio_src": "",
+      "thumbnail": "",
+      "publishedDate": null,
+      "pubdate": "",
+      "length": null,
+      "views": "",
+      "author": "",
+      "metadata": "",
+      "priority": "",
+      "engines": [
+        "duckduckgo"
+      ],
+      "open_group": false,
+      "close_group": false,
+      "positions": [
+        1
+      ],
+      "score": 1.0,
+      "category": "general",
+      "url": "https://archlinux.org",
+      "engine": "duckduckgo",
+      "parsed_url": [
+        "https",
+        "archlinux.org",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "template": "default.html",
+      "url": "https://www.reddit.com/r/archlinux/comments/tj4jvb/what_even_is_arch_linux/",
+      "title": "r/archlinux on Reddit: What even IS Arch Linux?",
+      "content": "Arch Linux, just like any other distribution, is not one singular thing. It's a combination of tooling, infrastructure and people. More on reddit.com",
+      "publishedDate": null,
+      "thumbnail": "",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "www.reddit.com",
+        "/r/archlinux/comments/tj4jvb/what_even_is_arch_linux/",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "brave"
+      ],
+      "positions": [
+        3,
+        9
+      ],
+      "score": 0.8888888888888888,
+      "category": "general"
+    },
+    {
+      "template": "default.html",
+      "url": "https://archlinuxarm.org/",
+      "title": "Arch Linux ARM",
+      "content": "Arch Linux ARM is a distribution of Linux for ARM computers. We provide targeted kernel and software support for hard-float ARMv7 with NEON and ARMv8 AArch64 instruction sets on a variety of consumer devices and development platforms.",
+      "publishedDate": null,
+      "thumbnail": "",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "archlinuxarm.org",
+        "/",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "startpage",
+        "brave"
+      ],
+      "positions": [
+        5,
+        8
+      ],
+      "score": 0.65,
+      "category": "general"
+    },
+    {
+      "template": "default.html",
+      "url": "https://wiki.archlinux.org/title/Main_page",
+      "title": "ArchWiki - Arch Linux",
+      "content": "Welcome to the ArchWiki: your source for Arch Linux documentation on the web. Visit the Table of contents for a listing of article categories.",
+      "publishedDate": "2025-12-18T00:00:00",
+      "thumbnail": "",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "wiki.archlinux.org",
+        "/title/Main_page",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "startpage",
+        "brave"
+      ],
+      "positions": [
+        11,
+        5
+      ],
+      "score": 0.5818181818181818,
+      "category": "general",
+      "pubdate": "2025-12-18 00:00:00"
+    },
+    {
+      "template": "default.html",
+      "url": "https://wiki.archlinux.org/title/Installation_guide",
+      "title": "Installation guide - ArchWiki",
+      "content": "This document is a guide for installing Arch Linux using the live system booted from an installation medium made from an official installation image. The installation medium provides accessibility features which are described on the page Install Arch Linux with accessibility options.",
+      "publishedDate": "2026-03-07T00:00:00",
+      "thumbnail": "",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "wiki.archlinux.org",
+        "/title/Installation_guide",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "startpage",
+        "brave"
+      ],
+      "positions": [
+        10,
+        9
+      ],
+      "score": 0.4222222222222222,
+      "category": "general",
+      "pubdate": "2026-03-07 00:00:00"
+    },
+    {
+      "template": "default.html",
+      "title": "What Is Arch Linux, and How Is It Different From Other Versions of Linux?",
+      "content": "What makes Arch so different? Arch Is Its Own Thing Because most Linux distributions are based on other, older distributions, they can be classed according to their ancestry. Linux Mint, for example, is based on the long term support version of Ubuntu, which in turn is based on Debian Linux. Mint also has a version directly based on Debian.",
+      "img_src": "",
+      "iframe_src": "",
+      "audio_src": "",
+      "thumbnail": "",
+      "publishedDate": null,
+      "pubdate": "",
+      "length": null,
+      "views": "",
+      "author": "",
+      "metadata": "",
+      "priority": "",
+      "engines": [
+        "duckduckgo"
+      ],
+      "open_group": false,
+      "close_group": false,
+      "positions": [
+        4
+      ],
+      "score": 0.25,
+      "category": "general",
+      "url": "https://www.howtogeek.com/what-is-arch-linux/",
+      "engine": "duckduckgo",
+      "parsed_url": [
+        "https",
+        "www.howtogeek.com",
+        "/what-is-arch-linux/",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "template": "default.html",
+      "title": "Arch Linux Installation Guide: Easy Step-by-Step Instructions",
+      "content": "Complete Arch Linux installation guide with GNOME desktop. Step-by-step tutorial for partitioning, bootloader setup, and configuration.",
+      "img_src": "",
+      "iframe_src": "",
+      "audio_src": "",
+      "thumbnail": "",
+      "publishedDate": null,
+      "pubdate": "",
+      "length": null,
+      "views": "",
+      "author": "",
+      "metadata": "",
+      "priority": "",
+      "engines": [
+        "duckduckgo"
+      ],
+      "open_group": false,
+      "close_group": false,
+      "positions": [
+        5
+      ],
+      "score": 0.2,
+      "category": "general",
+      "url": "https://linuxconfig.org/arch-linux-installation-easy-step-by-step-guide",
+      "engine": "duckduckgo",
+      "parsed_url": [
+        "https",
+        "linuxconfig.org",
+        "/arch-linux-installation-easy-step-by-step-guide",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=IFaLEKRMTAM",
+      "title": "You Guys Were Right About Arch Linux... - YouTube",
+      "content": "Thanks to Hostinger for sponsoring this video! Test out a ton of different Linux distros with ease, using Hostinger's VPS service!",
+      "publishedDate": "2026-03-18T12:25:31.811780",
+      "engine": "startpage",
+      "template": "default.html",
+      "parsed_url": [
+        "https",
+        "www.youtube.com",
+        "/watch",
+        "",
+        "v=IFaLEKRMTAM",
+        ""
+      ],
+      "img_src": "",
+      "thumbnail": "",
+      "priority": "",
+      "engines": [
+        "startpage"
+      ],
+      "positions": [
+        6
+      ],
+      "score": 0.16666666666666666,
+      "category": "general",
+      "pubdate": "2026-03-18 12:25:31"
+    },
+    {
+      "template": "default.html",
+      "title": "Releases · archelinux/archelinux - GitHub",
+      "content": "Arche Linux is a minimal, lightweight, and keyboard-driven distro built on top of Arch Linux - Releases · archelinux/archelinux",
+      "img_src": "",
+      "iframe_src": "",
+      "audio_src": "",
+      "thumbnail": "",
+      "publishedDate": null,
+      "pubdate": "",
+      "length": null,
+      "views": "",
+      "author": "",
+      "metadata": "",
+      "priority": "",
+      "engines": [
+        "duckduckgo"
+      ],
+      "open_group": false,
+      "close_group": false,
+      "positions": [
+        6
+      ],
+      "score": 0.16666666666666666,
+      "category": "general",
+      "url": "https://github.com/archelinux/archelinux/releases",
+      "engine": "duckduckgo",
+      "parsed_url": [
+        "https",
+        "github.com",
+        "/archelinux/archelinux/releases",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "template": "default.html",
+      "url": "https://wiki.archlinux.org/title/Arch_Linux",
+      "title": "Arch Linux - ArchWiki",
+      "content": "Archers can freely contribute packages to the Arch User Repository, improve the ArchWiki documentation, provide technical assistance to others or just exchange opinions in the forums, mailing lists, or IRC channels. Arch Linux is the operating system of choice for many people around the globe, and ...",
+      "publishedDate": "2025-12-28T00:00:00",
+      "thumbnail": "",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "wiki.archlinux.org",
+        "/title/Arch_Linux",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "brave"
+      ],
+      "positions": [
+        7
+      ],
+      "score": 0.14285714285714285,
+      "category": "general",
+      "pubdate": "2025-12-28 00:00:00"
+    },
+    {
+      "url": "https://archlinux32.org/",
+      "title": "Arch Linux 32",
+      "content": "A lightweight and flexible Linux® distribution that tries to Keep It Simple. Currently we have official packages optimized for the i686 and pentium4 ...",
+      "publishedDate": null,
+      "engine": "startpage",
+      "template": "default.html",
+      "parsed_url": [
+        "https",
+        "archlinux32.org",
+        "/",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "thumbnail": "",
+      "priority": "",
+      "engines": [
+        "startpage"
+      ],
+      "positions": [
+        7
+      ],
+      "score": 0.14285714285714285,
+      "category": "general"
+    },
+    {
+      "template": "default.html",
+      "title": "Introduction to Arch Linux - GeeksforGeeks",
+      "content": "Arch Linux is an independently developed, open-source Linux distribution known for its simplicity, bleeding-edge updates, and user-focused design. It does not come with pre-installed graphical tools; instead, it provides a clean base system that users can shape exactly the way they want.",
+      "img_src": "",
+      "iframe_src": "",
+      "audio_src": "",
+      "thumbnail": "",
+      "publishedDate": null,
+      "pubdate": "",
+      "length": null,
+      "views": "",
+      "author": "",
+      "metadata": "",
+      "priority": "",
+      "engines": [
+        "duckduckgo"
+      ],
+      "open_group": false,
+      "close_group": false,
+      "positions": [
+        7
+      ],
+      "score": 0.14285714285714285,
+      "category": "general",
+      "url": "https://www.geeksforgeeks.org/linux-unix/what-is-arch-linux/",
+      "engine": "duckduckgo",
+      "parsed_url": [
+        "https",
+        "www.geeksforgeeks.org",
+        "/linux-unix/what-is-arch-linux/",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "template": "default.html",
+      "title": "Arch Linux Setup Guide: A Comprehensive Technical Walkthrough",
+      "content": "Arch Linux is a lightweight and flexible Linux distribution known for its keep it simple philosophy. Unlike many other distributions that come with a pre-configured system, Arch Linux gives users full control over the installation process, allowing them to build a customized operating system tailored to their specific needs. This guide aims to provide a detailed overview of setting up Arch ...",
+      "img_src": "",
+      "iframe_src": "",
+      "audio_src": "",
+      "thumbnail": "",
+      "publishedDate": null,
+      "pubdate": "",
+      "length": null,
+      "views": "",
+      "author": "",
+      "metadata": "",
+      "priority": "",
+      "engines": [
+        "duckduckgo"
+      ],
+      "open_group": false,
+      "close_group": false,
+      "positions": [
+        8
+      ],
+      "score": 0.125,
+      "category": "general",
+      "url": "https://linuxvox.com/blog/arch-linux-setup-guide/",
+      "engine": "duckduckgo",
+      "parsed_url": [
+        "https",
+        "linuxvox.com",
+        "/blog/arch-linux-setup-guide/",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "template": "default.html",
+      "title": "Arch Based Distros You Should Try in 2026 - commandlinux.com",
+      "content": "Arch Linux gives you speed, control, and the freshest packages — but its manual setup stops most users cold. Arch based distros solve that by pairing Arch's rolling-release core with graphical installers, preconfigured desktops, and extra tooling. Here are 16 worth trying in 2026, grouped by what they actually do well.",
+      "img_src": "",
+      "iframe_src": "",
+      "audio_src": "",
+      "thumbnail": "",
+      "publishedDate": null,
+      "pubdate": "",
+      "length": null,
+      "views": "",
+      "author": "",
+      "metadata": "",
+      "priority": "",
+      "engines": [
+        "duckduckgo"
+      ],
+      "open_group": false,
+      "close_group": false,
+      "positions": [
+        9
+      ],
+      "score": 0.1111111111111111,
+      "category": "general",
+      "url": "https://commandlinux.com/arch-linux/arch-based-distros/",
+      "engine": "duckduckgo",
+      "parsed_url": [
+        "https",
+        "commandlinux.com",
+        "/arch-linux/arch-based-distros/",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "template": "default.html",
+      "url": "https://github.com/archlinux",
+      "title": "Arch Linux · GitHub",
+      "content": "Arch Linux is an independently developed, x86-64 general-purpose GNU/Linux distribution that strives to provide the latest stable versions of most software by following a rolling-release model.",
+      "publishedDate": null,
+      "thumbnail": "https://imgs.search.brave.com/zycuLnKHgJdOOBmN6K1Rk8omct5Lcyzoz1GElD6npdY/rs:fit:200:200:1:0/g:ce/aHR0cHM6Ly9hdmF0/YXJzLmdpdGh1YnVz/ZXJjb250ZW50LmNv/bS91LzQ2NzM2NDg_/cz0yMDAmYW1wO3Y9/NA",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "github.com",
+        "/archlinux",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "brave"
+      ],
+      "positions": [
+        8
+      ],
+      "score": 0.125,
+      "category": "general"
+    },
+    {
+      "template": "default.html",
+      "url": "https://www.freecodecamp.org/news/how-to-install-arch-linux/",
+      "title": "The Arch Linux Handbook – Learn Arch Linux for Beginners",
+      "content": "Speaking from experience, installing Arch Linux is not very different from installing something like Fedora or Ubuntu. It's just that you have to go through the individual steps manually instead of having an installer do the things for you.",
+      "publishedDate": "2022-01-18T00:00:00",
+      "thumbnail": "https://imgs.search.brave.com/xGg3PM5xOwqfdJIwYbRFJ_7WUPH43-S4yMJ3ZtRMN-U/rs:fit:200:200:1:0/g:ce/aHR0cHM6Ly93d3cu/ZnJlZWNvZGVjYW1w/Lm9yZy9uZXdzL2Nv/bnRlbnQvaW1hZ2Vz/LzIwMjMvMDcvRmFy/aGFuLUFyY2gtTGlu/dXgtTW9ja3VwLnBu/Zw",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "www.freecodecamp.org",
+        "/news/how-to-install-arch-linux/",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "brave"
+      ],
+      "positions": [
+        16
+      ],
+      "score": 0.0625,
+      "category": "general",
+      "pubdate": "2022-01-18 00:00:00"
+    },
+    {
+      "url": "https://nl.wikipedia.org/wiki/Arch_Linux",
+      "title": "Arch Linux - Wikipedia",
+      "content": "Arch Linux is een Linuxdistributie die zich richt op gevorderde Linuxgebruikers die een snel, stabiel, lichtgewicht en minimalistisch systeem willen hebben.",
+      "publishedDate": null,
+      "engine": "startpage",
+      "template": "default.html",
+      "parsed_url": [
+        "https",
+        "nl.wikipedia.org",
+        "/wiki/Arch_Linux",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "thumbnail": "",
+      "priority": "",
+      "engines": [
+        "startpage"
+      ],
+      "positions": [
+        10
+      ],
+      "score": 0.1,
+      "category": "general"
+    },
+    {
+      "template": "default.html",
+      "title": "EndeavorOS Titan is one of the most unique Arch-based Linux ... - ZDNET",
+      "content": "EndeavorOS Titan is the newest release in this Arch-based distribution, and it is well worth the update, especially if you depend on proper GPU drivers.",
+      "img_src": "",
+      "iframe_src": "",
+      "audio_src": "",
+      "thumbnail": "",
+      "publishedDate": null,
+      "pubdate": "",
+      "length": null,
+      "views": "",
+      "author": "",
+      "metadata": "",
+      "priority": "",
+      "engines": [
+        "duckduckgo"
+      ],
+      "open_group": false,
+      "close_group": false,
+      "positions": [
+        10
+      ],
+      "score": 0.1,
+      "category": "general",
+      "url": "https://www.zdnet.com/article/endeavoros-titan-hands-on/",
+      "engine": "duckduckgo",
+      "parsed_url": [
+        "https",
+        "www.zdnet.com",
+        "/article/endeavoros-titan-hands-on/",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "template": "default.html",
+      "title": "Hitchhiker's Guide to the Arch Linux Installation",
+      "content": "This guide is the perfect companion for your first Arch Linux installation. It breaks down the process step by step, simplifying the technical details, and ensuring you don't feel lost. From partitioning the disk to setting up a swap file, I'll guide you through it all—including a few pro tips to save you from the mistakes I made as a beginner.",
+      "img_src": "",
+      "iframe_src": "",
+      "audio_src": "",
+      "thumbnail": "",
+      "publishedDate": null,
+      "pubdate": "",
+      "length": null,
+      "views": "",
+      "author": "",
+      "metadata": "",
+      "priority": "",
+      "engines": [
+        "duckduckgo"
+      ],
+      "open_group": false,
+      "close_group": false,
+      "positions": [
+        11
+      ],
+      "score": 0.09090909090909091,
+      "category": "general",
+      "url": "https://jimmymcbride.dev/blog/hitchhikers-guide-to-the-arch-linux-installation",
+      "engine": "duckduckgo",
+      "parsed_url": [
+        "https",
+        "jimmymcbride.dev",
+        "/blog/hitchhikers-guide-to-the-arch-linux-installation",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "template": "default.html",
+      "url": "https://archlinux.org/packages/",
+      "title": "Arch Linux - Package Search",
+      "content": "You are browsing the Arch Linux package database.",
+      "publishedDate": null,
+      "thumbnail": "",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "archlinux.org",
+        "/packages/",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "brave"
+      ],
+      "positions": [
+        12
+      ],
+      "score": 0.08333333333333333,
+      "category": "general"
+    },
+    {
+      "template": "default.html",
+      "url": "https://cachyos.org/",
+      "title": "CachyOS — Blazingly Fast OS based on Arch Linux ...",
+      "content": "🚀 CachyOS is a performance-optimized Arch Linux distribution with CPU-specific package builds, advanced kernel scheduling, and an effortless installation — delivering measurable speed gains without sacrificing simplicity.",
+      "publishedDate": null,
+      "thumbnail": "",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "cachyos.org",
+        "/",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "brave"
+      ],
+      "positions": [
+        13
+      ],
+      "score": 0.07692307692307693,
+      "category": "general"
+    },
+    {
+      "template": "default.html",
+      "url": "https://wiki.archlinux.org/title/Arch_compared_to_other_distributions",
+      "title": "Arch compared to other distributions - ArchWiki",
+      "content": "Arch features a large array of binary package repositories as well as the Arch User Repository. CRUX provides a more slimmed-down officially supported ports system in addition to a comparatively modest community repository. LFS, (or Linux From Scratch) exists simply as documentation.",
+      "publishedDate": "2025-11-12T00:00:00",
+      "thumbnail": "",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "wiki.archlinux.org",
+        "/title/Arch_compared_to_other_distributions",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "brave"
+      ],
+      "positions": [
+        15
+      ],
+      "score": 0.06666666666666667,
+      "category": "general",
+      "pubdate": "2025-11-12 00:00:00"
+    },
+    {
+      "template": "default.html",
+      "url": "https://wiki.archlinux.org/title/Frequently_asked_questions",
+      "title": "Frequently asked questions - ArchWiki",
+      "content": "See Arch compared to other distributions. See also System maintenance. Is your network configured correctly? Have a look at the Network configuration article. For advanced setups, you may also want to look at traffic shaping. One of the most commonly used kernels, linux, tends to be newer than ...",
+      "publishedDate": null,
+      "thumbnail": "",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "wiki.archlinux.org",
+        "/title/Frequently_asked_questions",
+        "",
+        "",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "brave"
+      ],
+      "positions": [
+        17
+      ],
+      "score": 0.058823529411764705,
+      "category": "general"
+    },
+    {
+      "template": "videos.html",
+      "url": "https://www.youtube.com/watch?v=DYnc-xwNeTg&vl=en",
+      "title": "Arch Linux but... Better? - YouTube",
+      "content": "Thanks to Autonomous for sponsoring today's video! If you're looking to upgrade the foundations of your setup, check out the Autonomous Desk 5 and ErgoChair ... Published November 12, 2025",
+      "publishedDate": null,
+      "thumbnail": "https://imgs.search.brave.com/RJglDSu2oSG8ZhApHby6piqqg_b1xK6ys88luOUklr0/rs:fit:200:200:1:0/g:ce/aHR0cHM6Ly9pLnl0/aW1nLmNvbS92aS9E/WW5jLXh3TmVUZy9t/YXhyZXNkZWZhdWx0/LmpwZw",
+      "engine": "brave",
+      "parsed_url": [
+        "https",
+        "www.youtube.com",
+        "/watch",
+        "",
+        "v=DYnc-xwNeTg&vl=en",
+        ""
+      ],
+      "img_src": "",
+      "priority": "",
+      "engines": [
+        "brave"
+      ],
+      "positions": [
+        14
+      ],
+      "score": 0.07142857142857142,
+      "category": "general",
+      "iframe_src": "https://www.youtube-nocookie.com/embed/DYnc-xwNeTg"
+    }
+  ],
+  "answers": [
+    {
+      "url": "https://en.wikipedia.org/wiki/Arch_Linux",
+      "engine": "duckduckgo",
+      "parsed_url": [
+        "https",
+        "en.wikipedia.org",
+        "/wiki/Arch_Linux",
+        "",
+        "",
+        ""
+      ],
+      "template": "answer/legacy.html",
+      "answer": "Arch Linux is an open source, rolling release Linux distribution. Arch Linux is kept up-to-date by regularly updating the individual pieces of software that it comprises. It provides monthly \"snapshots\" which are used as installation media. Arch Linux is intentionally minimal, and is meant to be configured by the user during installation so they may add only what they require. Pacman, a package manager written specifically for Arch Linux, is used to install, remove and update software packages. More at Wikipedia"
+    }
+  ],
+  "corrections": [],
+  "infoboxes": [
+    {
+      "infobox": "Arch Linux",
+      "id": "https://en.wikipedia.org/wiki/Arch_Linux",
+      "content": "Arch Linux is an open source, rolling release Linux distribution. Arch Linux is kept up-to-date by regularly updating the individual pieces of software that it comprises. It provides monthly \"snapshots\" which are used as installation media. Arch Linux is intentionally minimal, and is meant to be configured by the user during installation so they may add only what they require.",
+      "img_src": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Arch_Linux_\"Crystal\"_icon.svg/500px-Arch_Linux_\"Crystal\"_icon.svg.png",
+      "urls": [
+        {
+          "title": "Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Arch_Linux"
+        },
+        {
+          "title": "Official website",
+          "url": "https://archlinux.org",
+          "official": true
+        },
+        {
+          "title": "Source code repository url",
+          "url": "https://git.archlinux.org/"
+        },
+        {
+          "title": "Official blog url",
+          "url": "https://archlinux.org/news/"
+        },
+        {
+          "title": "Mastodon",
+          "url": "https://fosstodon.org/@archlinux"
+        },
+        {
+          "title": "Lemmy",
+          "url": "https://lemmy.ml/c/archlinux"
+        },
+        {
+          "title": "Wikidata",
+          "url": "http://www.wikidata.org/entity/Q185576"
+        }
+      ],
+      "engine": "wikidata",
+      "url": null,
+      "template": "default.html",
+      "parsed_url": null,
+      "title": "",
+      "thumbnail": "",
+      "priority": "",
+      "engines": [
+        "wikipedia",
+        "wikidata"
+      ],
+      "positions": "",
+      "score": 0,
+      "category": "",
+      "publishedDate": null,
+      "attributes": [
+        {
+          "label": "Inception",
+          "value": "January 2002",
+          "entity": "P571"
+        },
+        {
+          "label": "Platform",
+          "value": "RISC-V, i686, Q272629, ARM architecture",
+          "entity": "P400"
+        },
+        {
+          "label": "Developer",
+          "value": "Felix Yan, Allan McRae, Anatol Pomozov, Aaron Griffin",
+          "entity": "P178"
+        },
+        {
+          "label": "Publication date",
+          "value": "Tuesday, March 12, 2002",
+          "entity": "P577"
+        },
+        {
+          "label": "Copyright license",
+          "value": "GNU General Public License",
+          "entity": "P275"
+        },
+        {
+          "label": "Software version identifier",
+          "value": "2026.03.01",
+          "entity": "P348"
+        }
+      ]
+    }
+  ],
+  "suggestions": [
+    "arch linux iso",
+    "arch linux install",
+    "arch linux reddit",
+    "arch linux gui",
+    "arch linux system requirements",
+    "arch linux distros",
+    "arch linux download",
+    "arch linux vs ubuntu"
+  ],
+  "unresponsive_engines": [
+    [
+      "google",
+      "Suspended: access denied"
+    ]
+  ]
+}
