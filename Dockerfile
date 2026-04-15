@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
 		hipblas-dev \
 		rocblas-dev \
+		rocwmma-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ARG LLAMA_VERSION=master
@@ -21,6 +22,7 @@ WORKDIR /build/llama.cpp
 RUN cmake -B build \
     -DGGML_HIP=ON \
     -DAMDGPU_TARGETS=gfx1100 \
+		-DGGML_HIP_ROCWMMA_FATTN=ON \
     -DGGML_CUDA_FORCE_MMQ=ON \
     -DBUILD_SHARED_LIBS=OFF \
     -DLLAMA_CURL=ON \
@@ -38,6 +40,7 @@ ARG AI_GID=1100
 RUN apt-get update && apt-get install -y \
     libcurl4 \
 		hipblas \
+		rocblas \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 

@@ -6,6 +6,12 @@ set -eu
 
 COMPOSE_FILE="$(dirname "$0")/docker-compose.yml"
 
+if ! command -v /opt/rocm/bin/rocm-smi &>/dev/null; then
+  echo "ERROR: rocm-smi not found at /opt/rocm/bin/rocm-smi." >&2
+  echo "Install it with: sudo pacman -S rocm-smi-lib" >&2
+  exit 1
+fi
+
 echo "Finding discrete GPU..."
 
 BUS_ID=$(lspci 2>/dev/null | grep -i 'RX 7900' | cut -d' ' -f1)
