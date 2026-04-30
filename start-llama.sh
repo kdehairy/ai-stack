@@ -28,6 +28,14 @@ GPU_DEVICE_IDX=$(/opt/rocm/bin/rocm-smi --showbus 2>/dev/null \
   | tr '[]' ':' \
   | cut -d':' -f2)
 
+GPU_DEVICE_IDX=$(/opt/rocm/bin/rocm-smi --showbus --json 2>/dev/null \
+	| jq -r '
+      to_entries[] 
+			| select(.value["PCI Bus"] 
+			| endswith("03:00.0")) 
+			| .key | ltrimstr("card") 
+			| tonumber')
+
 if [[ -z "$GPU_DEVICE_IDX" ]]; then
   echo "ERROR: Could not find RX 7900 XTX. Check lspci and rocm-smi output." >&2
 	echo "rocm-smi output:" >&2
