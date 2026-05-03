@@ -11,11 +11,10 @@ This is a Docker-based AI stack providing:
 
 ## Run
 
-### Start inference server, searxng & openWebUI
-use systemd unit ai-stack.service
-
-### Start embedding service
-use systemd unit ai-embedding-stack.service
+### Start all services (inference, search, webui, embedding)
+```bash
+./start-llama.sh --remove-orphans
+```
 
 ### Check service health
 - llama: http://localhost:8080/health
@@ -50,9 +49,9 @@ Embedding uses Qwen3-Embedding-0.6B model.
 ## Services Overview
 
 - **llama** (port 8082): Main inference server with GLM-4.7-Flash model
+- **llama-embedding** (port 8080): Embedding server for vector operations
 - **searxng** (port 8888): Web search proxy
 - **openwebui** (port 3000): Chat interface with OpenAI-compatible API
-- **llama-embedding** (port 8080): Embedding server for vector operations
 - **qdrant** (port 6333): Vector database
 - **qdrant-mcp** (port 3001): MCP server for code embedding
 

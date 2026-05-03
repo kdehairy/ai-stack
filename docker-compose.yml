@@ -1,6 +1,6 @@
 services:
 
-  # Model
+  # Model - Reasoner
   llama:
     build:
       context: .
@@ -51,7 +51,46 @@ services:
       retries: 5
       start_period: 60s
 
-  # SearXNG
+  # Model - Embedding
+  llama-embedding:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        LLAMA_VERSION: ${LLAMA_VERSION}
+        AI_UID: ${AI_UID}
+        AI_GID: ${AI_GID}
+    image: llama-cpp-rocm:latest
+    pull_policy: never
+    container_name: llama-embedding
+    restart: unless-stopped
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+      - render
+    volumes:
+      - ${LLAMA_MODEL_PATH}:/data/models/llamacpp:ro
+    environment:
+      - ROCR_VISIBLE_DEVICES=${GPU_DEVICE_IDX}
+    command: >
+      --model /data/models/llamacpp/qwen3-embedding-0.6b-q8_0/Qwen3-Embedding-0.6B-Q8_0.gguf
+      --host 0.0.0.0
+      --port 8080
+      --metrics
+      --embedding
+      --pooling last
+      -ub 8192
+      --n-gpu-layers 0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # SearxNG
   searxng:
     image: searxng/searxng:latest
     container_name: searxng
@@ -91,7 +130,52 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-      #
+
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    restart: unless-stopped
+    environment:
+      - QDRANT__TELEMETRY_DISABLED=true
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+  # Qdrant MCP Server
+  qdrant-mcp:
+    build:
+      context: embedding
+      dockerfile: Dockerfile
+    container_name: qdrant-mcp
+    restart: unless-stopped
+    depends_on:
+      - qdrant
+      - llama-embedding
+    environment:
+      TRANSPORT_MODE: http
+      HTTP_PORT: 3000
+      QDRANT_URL: http://qdrant:6333
+      EMBEDDING_PROVIDER: openai
+      EMBEDDING_BASE_URL: http://llama-embedding:8080/v1
+      OPENAI_BASE_URL: http://llama-embedding:8080/v1
+      EMBEDDING_MODEL: qwen3-embedding-0.6b
+      EMBEDDING_DIMENSIONS: 1024
+      OPENAI_API_KEY: dummy
+
+      CODE_CHUNK_SIZE: 2500
+      CODE_CHUNK_OVERLAP: 300
+      CODE_BATCH_SIZE: 64
+    ports:
+      - ${QDRANT_MCP_HOST}:${QDRANT_MCP_PORT}:3000
+    volumes:
+      - /home/kdehairy/git_tree:/home/kdehairy/git_tree:ro
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/mcp" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   # Node Exporter
   node-exporter:
     image: prom/node-exporter:latest
@@ -122,4 +206,6 @@ services:
 
 volumes:
   openwebui-data:
+    driver: local
+  qdrant_storage:
     driver: local

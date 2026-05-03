@@ -8,11 +8,11 @@ Wants=network-online.target
 Type=simple
 User=kdehairy
 Group=docker
-WorkingDirectory=/data/ai-stack
+WorkingDirectory=/home/kdehairy/git_tree/ai-stack
 
-EnvironmentFile=/data/ai-stack/.env
+EnvironmentFile=/home/kdehairy/git_tree/ai-stack/.env
 
-ExecStart=/data/ai-stack/start-llama.sh --remove-orphans
+ExecStart=/home/kdehairy/git_tree/ai-stack/start-llama.sh --remove-orphans
 ExecStop=/usr/bin/docker compose down
 
 Restart=on-failure
