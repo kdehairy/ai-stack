@@ -58,7 +58,7 @@ services:
     restart: unless-stopped
     user: "${AI_UID}:${AI_GID}"
     volumes:
-      - ./searxng/config:/etc/searxng:ro
+      - ${VOLUMES_BASE}/searxng/config:/etc/searxng:ro
     ports:
       - "${SEARXNG_HOST}:${SEARXNG_PORT}:8080"
     dns:
