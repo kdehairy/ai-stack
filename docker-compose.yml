@@ -121,6 +121,12 @@ services:
     environment:
       - OPENAI_API_BASE_URL=http://llama:8080/v1
       - OPENAI_API_KEY=none
+      - CORS_ALLOW_ORIGIN=http://darwish.cloud.home
+      - ENABLE_WEB_SEARCH=True
+      - WEB_SEARCH_ENGINE="searxng"
+      - WEB_SEARCH_RESULT_COUNT=3
+      - WEB_SEARCH_CONCURRENT_REQUESTS=10
+      - SEARXNG_QUERY_URL="http://searxng:8080/search?q=<query>"
     depends_on:
       llama:
         condition: service_healthy
