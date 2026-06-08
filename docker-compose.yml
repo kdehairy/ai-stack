@@ -26,7 +26,7 @@ services:
     environment:
       - ROCR_VISIBLE_DEVICES=${GPU_DEVICE_IDX}
     command: >
-      --model /data/models/llamacpp/${LLAMA_REASONER_MODEL_FILE}
+      --models-preset /data/models/llamacpp/models.ini
       --host 0.0.0.0
       --port 8080
       --metrics
