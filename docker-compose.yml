@@ -22,7 +22,7 @@ services:
     volumes:
       - ${LLAMA_MODEL_PATH}:/data/models/llamacpp:ro
     ports:
-      - "${LLAMA_HOST}:${LLAMA_REASONER_PORT}:8080"
+      - "${LLAMA_HOST}:${LLAMA_PORT}:8080"
     environment:
       - ROCR_VISIBLE_DEVICES=${GPU_DEVICE_IDX}
     command: >
@@ -73,7 +73,7 @@ services:
     volumes:
       - ${LLAMA_MODEL_PATH}:/data/models/llamacpp:ro
     ports:
-      - "${EMBEDDING_HOST:-127.0.0.1}:${EMBEDDING_PORT:-8080}:8080"
+      - "${EMBEDDING_HOST}:${EMBEDDING_PORT}:8080"
     environment:
       - ROCR_VISIBLE_DEVICES=${GPU_DEVICE_IDX}
     command: >
@@ -147,7 +147,7 @@ services:
     environment:
       - QDRANT__TELEMETRY_DISABLED=true
     ports:
-      - "${QDRANT_HOST:-127.0.0.1}:${QDRANT_PORT:-6333}:6333"
+      - "${QDRANT_HOST}:${QDRANT_PORT}:6333"
     volumes:
       - qdrant_storage:/qdrant/storage
 
