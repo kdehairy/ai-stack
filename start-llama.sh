@@ -4,7 +4,8 @@
 
 set -eu
 
-COMPOSE_FILE="$(dirname "$0")/docker-compose.yml"
+COMPOSE_FILE="${1:-services/llama/docker-compose.yml}"
+shift || true
 
 if ! command -v /opt/rocm/bin/rocm-smi &>/dev/null; then
   echo "ERROR: rocm-smi not found at /opt/rocm/bin/rocm-smi." >&2

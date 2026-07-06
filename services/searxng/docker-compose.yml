@@ -1,0 +1,26 @@
+name: searxng
+
+networks:
+  ai-stack:
+    external: true
+
+services:
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    user: "${AI_UID}:${AI_GID}"
+    volumes:
+      - ${VOLUMES_BASE}/searxng/config:/etc/searxng:ro
+    ports:
+      - "${SEARXNG_HOST}:${SEARXNG_PORT}:8080"
+    dns:
+      - 1.1.1.1
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - ai-stack

@@ -1,0 +1,24 @@
+[Unit]
+Description=Qdrant MCP server for code indexing
+Requires=docker.service
+After=docker.service network-online.target qdrant.service llama-embedding.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=kdehairy
+Group=docker
+WorkingDirectory=/home/kdehairy/git_tree/ai-stack
+EnvironmentFile=/home/kdehairy/git_tree/ai-stack/.env
+ExecStart=/usr/bin/docker compose -f services/qdrant-mcp/docker-compose.yml up
+ExecStop=/usr/bin/docker compose -f services/qdrant-mcp/docker-compose.yml down
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=300
+TimeoutStopSec=60
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=qdrant-mcp
+
+[Install]
+WantedBy=multi-user.target
