@@ -6,7 +6,7 @@ networks:
 
 services:
   openwebui:
-    image: ghcr.io/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:v0.10.2
     container_name: openwebui
     restart: unless-stopped
     volumes:
