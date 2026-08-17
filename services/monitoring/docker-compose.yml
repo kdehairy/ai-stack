@@ -4,7 +4,7 @@ services:
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
-    restart: unless-stopped
+    restart: "no"
     pid: host
     network_mode: host
     volumes:
@@ -21,7 +21,7 @@ services:
   amd-device-metrics:
     image: rocm/device-metrics-exporter:v1.1.0
     container_name: amd-device-metrics
-    restart: unless-stopped
+    restart: "no"
     network_mode: host
     devices:
       - /dev/dri:/dev/dri

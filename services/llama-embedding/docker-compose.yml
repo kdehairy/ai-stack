@@ -16,7 +16,7 @@ services:
     image: llama-cpp-rocm:latest
     pull_policy: never
     container_name: llama-embedding
-    restart: unless-stopped
+    restart: "no"
     devices:
       - /dev/kfd:/dev/kfd
       - /dev/dri:/dev/dri

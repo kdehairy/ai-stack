@@ -8,7 +8,7 @@ services:
   searxng:
     image: searxng/searxng:latest
     container_name: searxng
-    restart: unless-stopped
+    restart: "no"
     user: "${AI_UID}:${AI_GID}"
     volumes:
       - ${VOLUMES_BASE}/searxng/config:/etc/searxng:ro

@@ -10,7 +10,7 @@ services:
       context: ../../embedding
       dockerfile: Dockerfile
     container_name: qdrant-mcp
-    restart: unless-stopped
+    restart: "no"
     environment:
       TRANSPORT_MODE: http
       HTTP_PORT: 3000

@@ -8,7 +8,7 @@ services:
   openwebui:
     image: ghcr.io/open-webui/open-webui:v0.11.0
     container_name: openwebui
-    restart: unless-stopped
+    restart: "no"
     volumes:
       - /data/persistence/openwebui:/app/backend/data
     ports:
