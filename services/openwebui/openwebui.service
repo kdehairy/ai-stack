@@ -1,17 +1,36 @@
 [Unit]
-Description=Open WebUI chat interface
+Description=Open WebUI chat interface (standalone container)
 Requires=docker.service
 After=docker.service network-online.target llama.service searxng.service qdrant.service
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=kdehairy
-Group=docker
-WorkingDirectory=/home/kdehairy/git_tree/ai-stack
-EnvironmentFile=/home/kdehairy/git_tree/ai-stack/.env
-ExecStart=/usr/bin/docker compose -f services/openwebui/docker-compose.yml up
-ExecStop=/usr/bin/docker compose -f services/openwebui/docker-compose.yml down
+EnvironmentFile=${CONF_DEST}
+User=${PUID}
+Group=${PGID}
+ExecStartPre=-/usr/bin/docker rm -f openwebui
+ExecStart=/usr/bin/docker run --rm --name openwebui \
+  --network ai-stack \
+  --log-opt max-size=10m \
+  --log-opt max-file=3 \
+  -e OPENAI_API_BASE_URL=http://llama:8080/v1 \
+  -e OPENAI_API_KEY=none \
+  -e CORS_ALLOW_ORIGIN=http://${OPENWEBUI_DOMAIN} \
+  -e ENABLE_WEB_SEARCH=True \
+  -e WEB_SEARCH_ENGINE=searxng \
+  -e WEB_SEARCH_RESULT_COUNT=3 \
+  -e WEB_SEARCH_CONCURRENT_REQUESTS=3 \
+  -e SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query> \
+  -p ${BIND_HOST}:${OPENWEBUI_PORT}:8080 \
+  -v ${DATA_DIR}/openwebui:/app/backend/data \
+  --health-cmd "curl -f http://localhost:8080/health" \
+  --health-interval 30s \
+  --health-timeout 10s \
+  --health-retries 3 \
+  --health-start-period 30s \
+  ghcr.io/open-webui/open-webui:v0.11.0
+ExecStop=/usr/bin/docker stop openwebui
 Restart=on-failure
 RestartSec=30
 TimeoutStartSec=300

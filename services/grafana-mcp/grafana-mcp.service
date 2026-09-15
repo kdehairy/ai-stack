@@ -1,0 +1,41 @@
+[Unit]
+Description=Grafana MCP server (standalone container)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=${CONF_DEST}
+User=${PUID}
+Group=${PGID}
+ExecStartPre=-/usr/bin/docker rm -f grafana-mcp
+ExecStart=/usr/bin/docker run --rm --name grafana-mcp \
+  --network ai-stack \
+  --log-opt max-size=10m \
+  --log-opt max-file=3 \
+  --entrypoint /app/mcp-grafana \
+  -e GRAFANA_URL=${GRAFANA_URL} \
+  -e GRAFANA_SERVICE_ACCOUNT_TOKEN=${GRAFANA_SERVICE_ACCOUNT_TOKEN} \
+  -e MCP_GRAFANA_SERVER_TOKEN=${GRAFANA_MCP_SERVER_TOKEN} \
+  -p ${BIND_HOST}:${GRAFANA_MCP_PORT}:8000 \
+  --health-cmd "bash -c 'echo > /dev/tcp/127.0.0.1/8000' || exit 1" \
+  --health-interval 30s \
+  --health-timeout 5s \
+  --health-retries 3 \
+  --health-start-period 15s \
+  grafana/mcp-grafana:1.4.2 \
+  --transport streamable-http \
+  --address 0.0.0.0:8000 \
+  --allowed-hosts ${GRAFANA_MCP_DOMAIN},127.0.0.1:8000,localhost:8000,127.0.0.1:${GRAFANA_MCP_PORT},localhost:${GRAFANA_MCP_PORT}
+ExecStop=/usr/bin/docker stop grafana-mcp
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=300
+TimeoutStopSec=60
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=grafana-mcp
+
+[Install]
+WantedBy=multi-user.target

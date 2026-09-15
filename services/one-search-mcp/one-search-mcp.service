@@ -1,0 +1,40 @@
+[Unit]
+Description=One-Search MCP server behind mcp-proxy (standalone container)
+Requires=docker.service
+After=docker.service network-online.target searxng.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=${CONF_DEST}
+User=${PUID}
+Group=${PGID}
+ExecStartPre=-/usr/bin/docker rm -f one-search-mcp
+ExecStart=/usr/bin/docker run --rm --name one-search-mcp \
+  --network ai-stack \
+  --log-opt max-size=10m \
+  --log-opt max-file=3 \
+  --init \
+  --shm-size 1g \
+  -e SEARCH_PROVIDER=searxng \
+  -e SEARCH_API_URL=http://searxng:8080 \
+  -e ALLOW_PRIVATE_NETWORK=false \
+  -e NODE_ENV=production \
+  -p ${BIND_HOST}:${ONESEARCH_MCP_PORT}:3002 \
+  --health-cmd "node -e \"fetch('http://127.0.0.1:3002/status').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"" \
+  --health-interval 30s \
+  --health-timeout 5s \
+  --health-retries 3 \
+  --health-start-period 30s \
+  one-search-mcp-proxy:latest
+ExecStop=/usr/bin/docker stop one-search-mcp
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=300
+TimeoutStopSec=60
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=one-search-mcp
+
+[Install]
+WantedBy=multi-user.target

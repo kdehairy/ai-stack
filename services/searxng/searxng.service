@@ -1,17 +1,31 @@
 [Unit]
-Description=SearXNG metasearch engine
+Description=SearXNG metasearch engine (standalone container)
 Requires=docker.service
 After=docker.service network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=kdehairy
-Group=docker
-WorkingDirectory=/home/kdehairy/git_tree/ai-stack
-EnvironmentFile=/home/kdehairy/git_tree/ai-stack/.env
-ExecStart=/usr/bin/docker compose -f services/searxng/docker-compose.yml up
-ExecStop=/usr/bin/docker compose -f services/searxng/docker-compose.yml down
+EnvironmentFile=${CONF_DEST}
+User=${PUID}
+Group=${PGID}
+ExecStartPre=-/usr/bin/docker rm -f searxng
+ExecStart=/usr/bin/docker run --rm --name searxng \
+  --network ai-stack \
+  --log-opt max-size=10m \
+  --log-opt max-file=3 \
+  -u ${PUID}:${PGID} \
+  -e SEARXNG_SECRET=${SEARXNG_SECRET} \
+  --dns ${DNS_SERVERS} \
+  -p ${BIND_HOST}:${SEARXNG_PORT}:8080 \
+  -v ${BASE_DIR}/services/searxng/etc/searxng:/etc/searxng:ro \
+  --health-cmd "wget -qO- http://localhost:8080/healthz" \
+  --health-interval 30s \
+  --health-timeout 10s \
+  --health-retries 3 \
+  --health-start-period 20s \
+  searxng/searxng:latest
+ExecStop=/usr/bin/docker stop searxng
 Restart=on-failure
 RestartSec=30
 TimeoutStartSec=300

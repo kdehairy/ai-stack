@@ -1,0 +1,37 @@
+[Unit]
+Description=Node Exporter (host metrics, standalone container)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=${CONF_DEST}
+User=${PUID}
+Group=${PGID}
+ExecStartPre=-/usr/bin/docker rm -f node-exporter
+ExecStart=/usr/bin/docker run --rm --name node-exporter \
+  --network host \
+  --log-opt max-size=10m \
+  --log-opt max-file=3 \
+  --pid host \
+  -v /proc:/host/proc:ro \
+  -v /sys:/host/sys:ro \
+  -v /:/rootfs:ro \
+  prom/node-exporter:latest \
+  --path.procfs=/host/proc \
+  --path.sysfs=/host/sys \
+  --path.rootfs=/rootfs \
+  --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/) \
+  --no-collector.xfs
+ExecStop=/usr/bin/docker stop node-exporter
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=300
+TimeoutStopSec=60
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=node-exporter
+
+[Install]
+WantedBy=multi-user.target

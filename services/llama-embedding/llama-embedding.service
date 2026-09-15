@@ -1,17 +1,41 @@
 [Unit]
-Description=llama.cpp embedding server
+Description=llama.cpp embedding server (standalone container)
 Requires=docker.service
 After=docker.service network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=kdehairy
-Group=docker
-WorkingDirectory=/home/kdehairy/git_tree/ai-stack
-EnvironmentFile=/home/kdehairy/git_tree/ai-stack/.env
-ExecStart=/home/kdehairy/git_tree/ai-stack/start-llama.sh services/llama-embedding/docker-compose.yml
-ExecStop=/usr/bin/docker compose -f services/llama-embedding/docker-compose.yml down
+EnvironmentFile=${CONF_DEST}
+User=${PUID}
+Group=${PGID}
+ExecStartPre=-/usr/bin/docker rm -f llama-embedding
+ExecStart=/usr/bin/docker run --rm --name llama-embedding \
+  --network ai-stack \
+  --log-opt max-size=10m \
+  --log-opt max-file=3 \
+  --device /dev/kfd \
+  --device /dev/dri \
+  --group-add ${VIDEO_GID} \
+  --group-add ${RENDER_GID} \
+  -e ROCR_VISIBLE_DEVICES=${GPU_DEVICES} \
+  -p ${BIND_HOST}:${EMBEDDING_PORT}:8080 \
+  -v ${MODELS_DIR}:/data/models/llamacpp:ro \
+  --health-cmd "curl -f http://localhost:8080/health" \
+  --health-interval 30s \
+  --health-timeout 10s \
+  --health-retries 5 \
+  --health-start-period 60s \
+  llama-cpp-rocm:latest \
+  --model /data/models/llamacpp/qwen-embedding/Qwen3-Embedding-4B-Q4_K_M.gguf \
+  --host 0.0.0.0 \
+  --port 8080 \
+  --metrics \
+  --embedding \
+  --pooling last \
+  -ub 8192 \
+  --n-gpu-layers 0
+ExecStop=/usr/bin/docker stop llama-embedding
 Restart=on-failure
 RestartSec=30
 TimeoutStartSec=300

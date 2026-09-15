@@ -1,0 +1,83 @@
+# SearXNG configuration overlay.
+#
+# This is deliberately NOT a full copy of the image's default settings.yml.
+# `use_default_settings` merges this file on top of the image defaults
+# (searx/settings_loader.py:update_settings), so upstream fixes (anti-bot
+# header/UA handling, engine updates, etc.) shipped in newer images keep
+# applying automatically. Only put real overrides below.
+#
+# Deployed to /data/ai-stack/searxng/config/settings.yml via `make install`
+# (see Makefile). Do not edit that copy directly - edit this file and
+# redeploy.
+
+use_default_settings:
+  engines:
+    # Curated minimal engine set: fewer upstream requests per query = lower
+    # block/captcha risk. Everything not listed here is dropped entirely
+    # (not just disabled), which also keeps it off the preferences UI.
+    #
+    # Startpage and Qwant are intentionally excluded: both were observed
+    # CAPTCHA-ing / denying this instance on first contact (reliability 0
+    # in /stats). Google Scholar excluded too (CAPTCHA-prone).
+    keep_only:
+      # general / web  (what OpenWebUI + one-search-mcp hit on every query)
+      - google
+      - bing
+      - brave
+      - duckduckgo        # kept; IP-block handled by longer suspension below
+      - wikipedia
+      - wikidata
+      # images
+      - google images
+      - bing images
+      - brave.images
+      - wikicommons.images
+      # videos
+      - google videos
+      - bing videos
+      - brave.videos
+      - youtube
+      # news
+      - google news
+      - bing news
+      - brave.news
+      - wikinews
+      # it
+      - github
+      - stackoverflow
+      - mdn
+      - docker hub
+      - pypi
+      - arch linux wiki
+      # science
+      - arxiv
+      - pubmed
+      - semantic scholar
+
+general:
+  instance_name: "SearXNG"
+  enable_metrics: true          # keep /stats for verification
+
+search:
+  safe_search: 0
+  formats:
+    - html
+    - json                      # required by OpenWebUI / one-search-mcp
+  # Longer back-off once an engine blocks us: the default 180s re-probes a
+  # blocked engine every 3 minutes, which keeps a DDG-style IP block from
+  # ever lifting (DDG's IP block clears after ~1h without requests).
+  suspended_times:
+    SearxEngineAccessDenied: 3600      # was 180 - DDG 403 / access denied
+    SearxEngineTooManyRequests: 900    # was 180 - Brave 429
+    SearxEngineCaptcha: 14400          # was 3600 - Google/Startpage captchas are sticky
+
+server:
+  # secret_key is injected via ${SEARXNG_SECRET} (docker-compose env), not
+  # stored here - see services/searxng/docker-compose.yml.
+  limiter: false
+  public_instance: false
+  image_proxy: false
+
+outgoing:
+  request_timeout: 3.0
+  enable_http2: true

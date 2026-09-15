@@ -1,5 +1,5 @@
 [Unit]
-Description=Qdrant vector database (standalone container)
+Description=AMD Device Metrics Exporter (standalone container)
 Requires=docker.service
 After=docker.service network-online.target
 Wants=network-online.target
@@ -9,23 +9,22 @@ Type=simple
 EnvironmentFile=${CONF_DEST}
 User=${PUID}
 Group=${PGID}
-ExecStartPre=-/usr/bin/docker rm -f qdrant
-ExecStart=/usr/bin/docker run --rm --name qdrant \
-  --network ai-stack \
+ExecStartPre=-/usr/bin/docker rm -f amd-device-metrics
+ExecStart=/usr/bin/docker run --rm --name amd-device-metrics \
+  --network host \
   --log-opt max-size=10m \
   --log-opt max-file=3 \
-  -e QDRANT__TELEMETRY_DISABLED=true \
-  -p ${BIND_HOST}:${QDRANT_PORT}:6333 \
-  -v ${DATA_DIR}/qdrant:/qdrant/storage \
-  qdrant/qdrant:latest
-ExecStop=/usr/bin/docker stop qdrant
+  --device /dev/dri:/dev/dri \
+  --device /dev/kfd:/dev/kfd \
+  rocm/device-metrics-exporter:v1.1.0
+ExecStop=/usr/bin/docker stop amd-device-metrics
 Restart=on-failure
 RestartSec=30
 TimeoutStartSec=300
 TimeoutStopSec=60
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=qdrant
+SyslogIdentifier=amd-device-metrics
 
 [Install]
 WantedBy=multi-user.target

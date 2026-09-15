@@ -1,142 +1,97 @@
 # AI Stack
 
-Complete Docker-based AI infrastructure for local LLM inference, search, chat interface, and vector embeddings with AMD GPU acceleration.
+Self-hosted AI infrastructure for a single GPU box: local LLM inference, a chat UI, private web
+search, vector/code search, and GPU observability — reachable from the LAN over plain HTTP domain
+names, each service its own systemd-managed Docker container.
 
-## Architecture
+## Overview
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      Client Layer                           │
-│                   (Web Browser / API)                       │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      Nginx Reverse Proxy                    │
-│  - model.cloud.home: llama inference (port 80)              │
-│  - embedding.cloud.home: vector embeddings (port 80)        │
-│  - websearch.cloud.home: searxng search (port 80)           │
-│  - darwish.cloud.home: openwebui chat (port 80)             │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-        ┌────────────────┼────────────────┐
-        ▼                ▼                ▼
-┌──────────────┐  ┌───────────────┐  ┌────────────────┐
-│  llama.cpp   │  │  llama-embed  │  │   searxng      │
-│  inference   │  │  embedding    │  │   search       │
-│  (GPU:99%)   │  │  (GPU:offload)│  │  (internal)    │
-│  port:8080   │  │  port:8080    │  │  port:8080     │
-└──────┬───────┘  └──────┬────────┘  └───────┬────────┘
-       │                 │                   │
-       ▼                 ▼                   │
-┌────────────────────────────────────────────────┐
-│                Docker Compose Services         │
-│  - llama: main inference (ports 127.0.0.1:8082)│
-│  - llama-embedding: vectors (127.0.0.1:8081)   │
-│  - searxng: local search proxy (127.0.0.1:8888)│
-│  - openwebui: chat UI (127.0.0.1:3000)         │
-│  - qdrant: vector DB (127.0.0.1:6333)          │
-│  - qdrant-mcp: code indexing (127.0.0.1:3001)  │
-└────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌──────────────────────────────────────────────────────────────┐
-│                      Nftables Firewall                       │
-│  - LAN-only access: 192.168.50.0/24, 10.6.0.0/24             │
-│  - SSH: port 22 only from LAN                                │
-│  - HTTP: port 80, 443 only from anywhere                     │
-│  - Monitoring: ports 5000 (AMD metrics), 9100 (node-exporter)│
-└──────────────────────────────────────────────────────────────┘
-```
+The intent is a private, LAN-only alternative to hosted AI products, built entirely from
+containers a single Makefile can stand up or tear down. Nginx (bare-metal on the host) is the only
+component with a LAN-facing listener; it reverse-proxies domain names to loopback ports, so every
+container stays bound to `127.0.0.1` regardless of what's exposed.
 
-### Component Relationships
+What it sets up:
 
-- **llama → openwebui**: OpenWebUI calls llama for chat completion via OpenAI-compatible API
-- **openwebui → searxng**: Web search integration fetches from searxng locally
-- **llama-embedding → qdrant**: Embedding service generates vectors, stored in Qdrant
-- **qdrant-mcp**: Indexes code and git history using both embedding service and Qdrant
-- **nginx**: Reverse proxies traffic from domain-based URLs to localhost service ports
-- **AMD GPU**: Shared across llama (99 layers) and llama-embedding (0 layers for inference, GPU for compute)
+| Service | Purpose | Domain (default) |
+| --- | --- | --- |
+| llama | GLM-4.7-Flash / Qwen3-VL inference, GPU-accelerated | `model.cloud.home` |
+| llama-embedding | Qwen3-Embedding-4B for vector/code search | `embedding.cloud.home` |
+| openwebui | Chat UI (talks to llama + searxng) | `darwish.cloud.home` |
+| searxng | Private metasearch engine | `websearch.cloud.home` |
+| one-search-mcp | Web-search MCP tool, backed by searxng | `onesearch.cloud.home` |
+| qdrant + qdrant-mcp | Vector DB + semantic code/git search MCP server | *(internal only)* |
+| grafana-mcp | Grafana/Prometheus/Loki/Incident MCP server | `grafana-mcp.cloud.home` |
+| node-exporter, amd-device-metrics | Host + GPU metrics for Prometheus/Grafana | *(internal only)* |
 
-## What This Provides
+Every domain and port above is a `Kconfig` default, not fixed (`make menuconfig` to change them).
+For how these pieces talk to each other, the full port table, and troubleshooting, see `AGENTS.md`.
 
-- **Local LLM Inference**: GLM-4.7-Flash model on AMD RX 7900 XTX (99% GPU offload)
-- **Chat Interface**: OpenWebUI with web search, chat history, and streaming responses
-- **Vector Embeddings**: Qwen3-Embedding-4B for code/document search
-- **Code Intelligence**: MCP server for semantic code search and git history analysis
-- **Web Search**: Private SearXNG instance (no external queries logged)
-- **Monitoring**: GPU metrics, token throughput, and system health (Grafana dashboard)
-- **Docker Compose**: Single-command startup with health checks and auto-restart
+## Pre-assumptions
 
-## Quick Start
+These are baked into the repo, not configurable:
 
-### Start all services
+- **AMD RX 7900 XTX** (`gfx1100`) — the llama image is built specifically for this GPU target
+- **Arch Linux host** — `nginx`/`syslog-ng` are pacman packages; the Makefile deploys into their
+  Arch conventions (`/etc/nginx/servers/`, `/etc/logrotate.d/`, `syslog-ng@default.service`)
+- **nginx and syslog-ng run bare-metal on the host**, not in Docker — this repo configures them,
+  it doesn't install them
+- **LAN-only, single host** — `nftables.conf` blocks WAN traffic; no vhost terminates TLS
+
+## Install
+
+### Prerequisites
+
+- Docker
+- AMD ROCm 6.4+ at `/opt/rocm`; `rocminfo` recommended (used to validate `GPU_DEVICES`, below)
+- `python-kconfiglib` (`make menuconfig`)
+- nginx and syslog-ng installed (not yet configured)
+- Model files present under `/data/models/llamacpp` (see `services/llama/models.ini` for the
+  expected layout)
+
+### Instructions
 
 ```bash
-./start-llama.sh --remove-orphans
+make menuconfig    # as your normal user: curses menu -> .config
+sudo make config   # .config -> /etc/ai-stack/ai-stack.conf; creates data dirs; adds
+                    # SYSTEM_USER to the docker/video/render groups
+make build          # builds the 3 locally-built images (llama, qdrant-mcp, one-search-mcp)
+sudo make install  # creates the ai-stack Docker network; renders and installs a systemd
+                    # unit per service (does not enable/start them)
+sudo make install-nginx install-syslog-ng install-logrotate  # host-level configs
+sudo make firewall  # optional: renders and applies nftables.conf
+sudo make start-all
 ```
 
-The script detects your RX 7900 XTX via `lspci` and `rocm-smi`, then starts all services.
+`make help` lists every target, including `install-<name>`/`uninstall-<name>` for a single
+service, `build-<name>` for a single image, and `stop-all`/`restart-all`/`uninstall`.
 
-### Access the UI
+### Helpful commands
 
-Open a browser to:
-- Chat interface: `http://localhost/` (mapped via nginx to openwebui)
-- Or: `http://darwish.cloud.home`
-
-### Check service health
+Find a GPU's UUID for the `GPU_DEVICES` Kconfig option (llama menu — a UUID is stable across
+reboots, unlike a device index):
 
 ```bash
-# Inference service
-curl http://localhost/8082/health
-
-# Embedding vectors
-curl http://localhost/8081/health
-
-# Web search
-curl http://localhost/8888/healthz
-
-# Chat interface
-curl http://localhost/3000/health
-
-# Vector database
-curl http://localhost/6333/collections
-
-# MCP server
-curl http://localhost/3001/mcp
+rocminfo | grep -E 'Marketing Name|Uuid'
 ```
 
-## Configuration
+Check service health (bypasses nginx):
 
-Edit `.env` to customize ports and paths:
-- `LLAMA_PORT=8082`, `EMBEDDING_PORT=8081` (host ports)
-- `DEFAULT_MODEL=Baloza-v3.0` (router mode loads multiple models from `models.ini`)
-- `ROCR_VISIBLE_DEVICES` auto-detected on first run
+```bash
+curl http://127.0.0.1:8082/health      # llama inference
+curl http://127.0.0.1:8081/health      # embedding vectors
+curl http://127.0.0.1:8888/healthz     # searxng search
+curl http://127.0.0.1:3000/health      # openwebui chat UI
+curl http://127.0.0.1:6333/collections # qdrant vector DB
+curl http://127.0.0.1:3001/mcp         # qdrant-mcp server
+curl http://127.0.0.1:3002/status      # one-search-mcp
+curl http://127.0.0.1:3003/mcp         # grafana-mcp (streamable-http; no dedicated health path)
+```
 
-## Models
+Or via nginx, once `*.cloud.home` resolves on your LAN: `curl http://model.cloud.home/health`
+(plain `http://<host-ip>/` with no matching `Host` header hits nginx's catch-all and returns
+`444`).
 
-- **Main inference**: GLM-4.7-Flash (UD-Q4_K_XL), 65536 context
-- **Router mode**: Alternates between Baloza-v3.0 and ninni-v0.1 (VL model)
-- **Embedding**: Qwen3-Embedding-4B, 2560 dimensions
-
-## Requirements
-
-- AMD ROCm 6.4+ installed at `/opt/rocm`
-- RX 7900 XTX GPU
-- Docker and Docker Compose
-- Model files in `/data/models/llamacpp`
-- Model files are automatically mounted as read-only volumes
-
-## Key Files
-
-- `docker-compose.yml` - Service definitions
-- `start-llama.sh` - GPU detection and startup script
-- `.env` - Environment configuration
-- `nginx-configs/` - Reverse proxy configurations
-- `nftables.conf` - Firewall rules
-- `models.ini` - Model settings for router mode
-- `ai-stack-dashboard.json` - Grafana monitoring panel
-
-## System Monitoring
-
-GPU metrics (VRAM, temperature, power) and inference stats are available via Prometheus. Import `ai-stack-dashboard.json` to Grafana for visual monitoring.
+Manage one service at a time with `systemctl`/`journalctl`, e.g. `sudo systemctl restart
+openwebui`. See `AGENTS.md` for the full Key Files reference, development workflow, and
+troubleshooting guide.

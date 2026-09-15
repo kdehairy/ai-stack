@@ -1,0 +1,185 @@
+mainmenu "ai-stack configuration"
+
+menu "General"
+
+config DATA_DIR
+	string "Data directory for persistent volumes"
+	default "/data/ai-stack"
+	help
+	  Directory where persistent container data (OpenWebUI data, Qdrant
+	  storage, SearXNG config) is stored.
+
+config SYSTEM_USER
+	string "System username for ai-stack services"
+	default "aistack"
+	help
+	  All containers run under this user's UID/GID. If the user does not
+	  already exist, 'make config' will offer to create it.
+
+config BIND_HOST
+	string "Host address services bind to"
+	default "127.0.0.1"
+	help
+	  Loopback address all service ports are published on. Nginx
+	  reverse-proxies LAN traffic to these loopback ports.
+
+endmenu
+
+menu "llama"
+
+config LLAMA_VERSION
+	string "llama.cpp git tag/branch to build"
+	default "b9524"
+	help
+	  Also used to build the llama-embedding image — both services share
+	  the same llama-cpp-rocm:latest build.
+
+config MODELS_DIR
+	string "GGUF model files directory"
+	default "/data/models/llamacpp"
+	help
+	  Bind-mounted read-only into both llama and llama-embedding.
+
+config GPU_DEVICES
+	string "GPU(s) exposed to llama and llama-embedding"
+	default "GPU-cd8b793d73692701"
+	help
+	  Comma-separated value passed as ROCR_VISIBLE_DEVICES to both
+	  containers. Use GPU UUIDs, not indices: a UUID is a property of the
+	  card and survives reboots, driver updates and slot changes, whereas
+	  the index is just KFD enumeration order. Find them with:
+	    rocminfo | grep -E 'Marketing Name|Uuid'
+	  (a card reporting "GPU-XX" has no UUID; the integrated GPU is one).
+	  'make config' warns if a listed UUID is not present in rocminfo.
+
+config LLAMA_PORT
+	int "llama.cpp inference server host port"
+	default 8082
+	range 1 65535
+
+config LLAMA_DOMAIN
+	string "Nginx server_name for llama"
+	default "model.cloud.home"
+
+endmenu
+
+menu "llama-embedding"
+
+config EMBEDDING_PORT
+	int "llama.cpp embedding server host port"
+	default 8081
+	range 1 65535
+	help
+	  Shares MODELS_DIR and LLAMA_VERSION from the llama menu (same
+	  built image).
+
+config EMBEDDING_DOMAIN
+	string "Nginx server_name for llama-embedding"
+	default "embedding.cloud.home"
+
+endmenu
+
+menu "searxng"
+
+config SEARXNG_PORT
+	int "SearXNG host port"
+	default 8888
+	range 1 65535
+
+config SEARXNG_SECRET
+	string "SearXNG secret key"
+	help
+	  Used to sign SearXNG sessions. Generate with: openssl rand -hex 32
+
+config DNS_SERVERS
+	string "DNS server for the searxng container"
+	default "1.1.1.1"
+
+config SEARXNG_DOMAIN
+	string "Nginx server_name for searxng"
+	default "websearch.cloud.home"
+
+endmenu
+
+menu "openwebui"
+
+config OPENWEBUI_PORT
+	int "OpenWebUI host port"
+	default 3000
+	range 1 65535
+
+config OPENWEBUI_DOMAIN
+	string "Nginx server_name for openwebui"
+	default "darwish.cloud.home"
+	help
+	  Also used as OpenWebUI's own CORS_ALLOW_ORIGIN, so the two never
+	  drift out of sync.
+
+endmenu
+
+menu "qdrant"
+
+config QDRANT_PORT
+	int "Qdrant host port"
+	default 6333
+	range 1 65535
+
+endmenu
+
+menu "qdrant-mcp"
+
+config QDRANT_MCP_PORT
+	int "qdrant-mcp host port"
+	default 3001
+	range 1 65535
+
+config CODE_DIR
+	string "Codebase directory for qdrant-mcp indexing"
+	default "/home/kdehairy/git_tree"
+	help
+	  Bind-mounted read-only into qdrant-mcp for semantic code search and
+	  git history analysis.
+
+endmenu
+
+menu "one-search-mcp"
+
+config ONESEARCH_MCP_PORT
+	int "one-search-mcp host port"
+	default 3002
+	range 1 65535
+
+config ONESEARCH_MCP_DOMAIN
+	string "Nginx server_name for one-search-mcp"
+	default "onesearch.cloud.home"
+
+endmenu
+
+menu "grafana-mcp"
+
+config GRAFANA_MCP_PORT
+	int "grafana-mcp host port"
+	default 3003
+	range 1 65535
+
+config GRAFANA_MCP_DOMAIN
+	string "Nginx server_name for grafana-mcp"
+	default "grafana-mcp.cloud.home"
+
+config GRAFANA_URL
+	string "Grafana instance URL"
+	default "http://grafana.cloud.home"
+
+config GRAFANA_SERVICE_ACCOUNT_TOKEN
+	string "Grafana service account token"
+	help
+	  Passed to grafana-mcp as GRAFANA_SERVICE_ACCOUNT_TOKEN.
+
+config GRAFANA_MCP_SERVER_TOKEN
+	string "grafana-mcp server auth token"
+	help
+	  Passed to grafana-mcp as MCP_GRAFANA_SERVER_TOKEN. Stored in
+	  plaintext in .config and in /etc/ai-stack/ai-stack.conf, same as
+	  the token above.
+
+endmenu
