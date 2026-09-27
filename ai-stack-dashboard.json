@@ -1,1006 +1,2963 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_PROMETHEUS",
-      "label": "Prometheus",
-      "description": "Your Prometheus datasource",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
-  "__requires": [
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "10.0.0"
-    },
-    {
-      "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
-      "version": "1.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "timeseries",
-      "name": "Time series",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "stat",
-      "name": "Stat",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "bargauge",
-      "name": "Bar gauge",
-      "version": ""
-    }
-  ],
   "annotations": {
-    "list": []
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
   },
   "description": "AI Stack monitoring dashboard for llama.cpp inference server, AMD RX 7900 XTX, and host system. Covers GPU VRAM/compute/thermals, LLM token throughput, MoE RAM offloading, CPU, storage, and system health.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
+  "id": 0,
   "links": [],
   "panels": [
-
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "id": 100,
+      "panels": [],
       "title": "GPU",
       "type": "row"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "How much of the 24GB VRAM is allocated vs free. With two MoE models loaded simultaneously expect ~16GB used. Threshold at 23GB warns before OOM. If used suddenly drops, a model crashed or was unloaded.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "VRAM allocated vs. free on the RX 7900 XTX's 24GB pool.\n\nKey signals:\n• Used GB — climbing toward 23-24GB risks OOM (orange/red thresholds at 22/23.5GB).\n• Free GB — should track inversely with Used; a sudden jump up means a model crashed or was unloaded.\n• Total GB (reference) — flat at 24GB, just a scale anchor.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "gbytes",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 22 },
-              { "color": "red", "value": 23.5 }
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 22
+              },
+              {
+                "color": "red",
+                "value": 23.5
+              }
             ]
-          }
+          },
+          "unit": "gbytes"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 1
+      },
       "id": 1,
-      "options": { "tooltip": { "mode": "multi" } },
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "gpu_used_vram{gpu_id=\"0\"} / 1024",
-          "legendFormat": "Used GB"
+          "legendFormat": "Used GB",
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "gpu_free_vram{gpu_id=\"0\"} / 1024",
-          "legendFormat": "Free GB"
+          "legendFormat": "Free GB",
+          "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "gpu_total_vram{gpu_id=\"0\"} / 1024",
-          "legendFormat": "Total GB (reference)"
+          "legendFormat": "Total GB (reference)",
+          "refId": "C"
         }
       ],
       "title": "VRAM Usage",
       "type": "timeseries"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "gfx_activity = shader/compute engine utilization — how busy the GPU cores are doing matrix multiply. umc_activity = memory controller utilization — how hard the VRAM bus is working. For MoE models umc_activity is often the more meaningful number because the bottleneck is weight bandwidth, not raw compute. If gfx is high but umc is low, the GPU is compute-bound. If umc is high, it is memory-bandwidth bound (normal for large models).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Shader/compute vs. memory-controller utilization on the GPU.\n\nKey signals:\n• Compute (gfx) % — high value means the GPU core is compute-bound (matrix multiply saturated).\n• Memory Controller (umc) % — high value means VRAM bandwidth-bound; usually the dominant bottleneck for MoE models since experts stream from memory.\n• gfx high + umc low = compute-bound; umc high = bandwidth-bound (expected for large MoE models).",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
           "min": 0,
-          "max": 100
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 1 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 1
+      },
       "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "gpu_gfx_activity{gpu_id=\"0\"}",
-          "legendFormat": "Compute (gfx) %"
+          "legendFormat": "Compute (gfx) %",
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "gpu_umc_activity{gpu_id=\"0\"}",
-          "legendFormat": "Memory Controller %"
+          "legendFormat": "Memory Controller %",
+          "refId": "B"
         }
       ],
       "title": "GPU Compute & Memory Activity",
       "type": "timeseries"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "gpu_power_usage = instantaneous draw. gpu_average_package_power = smoothed average, less spiky. power_cap = the configured TDP limit (default 315W, hardware max 350W). At idle expect ~16W. Under full inference load expect 180-280W. If power_usage is consistently at the cap, the GPU is power-limited and you could raise the cap to node_hwmon_power_cap_max_watt (350W) for more throughput.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "GPU power draw against its configured TDP cap.\n\nKey signals:\n• Instantaneous (W) — spiky moment-to-moment draw; idle ~16W, full inference load 180-280W.\n• Average Package (W) — smoothed reading, easier to read the trend.\n• Power Cap (W) — the ceiling (default 315W, hw max 350W); if Instantaneous rides the cap continuously, the GPU is power-limited and raising the cap could raise throughput.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
           "unit": "watt"
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Power Cap (W)" },
+            "matcher": {
+              "id": "byName",
+              "options": "Power Cap (W)"
+            },
             "properties": [
-              { "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } },
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
             ]
           }
         ]
       },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 1 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 1
+      },
       "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "gpu_power_usage{gpu_id=\"0\"}",
-          "legendFormat": "Instantaneous (W)"
+          "legendFormat": "Instantaneous (W)",
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "gpu_average_package_power{gpu_id=\"0\"}",
-          "legendFormat": "Average Package (W)"
+          "legendFormat": "Average Package (W)",
+          "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_hwmon_power_cap_watt{chip=\"0000:02:00_0_0000:03:00_0\",sensor=\"power1\"}",
-          "legendFormat": "Power Cap (W)"
+          "legendFormat": "Power Cap (W)",
+          "refId": "C"
         }
       ],
       "title": "GPU Power",
       "type": "timeseries"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "edge = die surface temperature, generally the lowest reading. junction = hotspot temperature — the single hottest point on the die. Thermal throttling begins at ~110C, emergency shutdown at ~115C. Keep junction below 95C under sustained inference load. memory = GDDR6 temperature — above 95C the memory clocks reduce which directly hurts token throughput since VRAM bandwidth is the primary inference bottleneck.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Die, hotspot, and memory temperatures on the GPU.\n\nKey signals:\n• Edge °C — die surface, generally the lowest reading.\n• Junction/Hotspot °C — hottest point on the die; throttling begins ~110°C, emergency shutdown ~115°C; keep below 95°C under sustained load.\n• Memory °C — GDDR6 temp; above 95°C memory clocks reduce, directly hurting throughput since VRAM bandwidth is the primary inference bottleneck.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "celsius",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 85 },
-              { "color": "red", "value": 100 }
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 85
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
             ]
-          }
+          },
+          "unit": "celsius"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 9 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 9
+      },
       "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "gpu_edge_temperature{gpu_id=\"0\"}",
-          "legendFormat": "Edge °C"
+          "legendFormat": "Edge °C",
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "gpu_junction_temperature{gpu_id=\"0\"}",
-          "legendFormat": "Junction/Hotspot °C"
+          "legendFormat": "Junction/Hotspot °C",
+          "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "gpu_memory_temperature{gpu_id=\"0\"}",
-          "legendFormat": "Memory °C"
+          "legendFormat": "Memory °C",
+          "refId": "C"
         }
       ],
       "title": "GPU Temperatures",
       "type": "timeseries"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "PCIe bandwidth between the GPU and the rest of the system. This is the data highway for MoE expert weight fetching — when the GPU needs an expert not resident in VRAM, it fetches it over PCIe from RAM. You are at PCIe 4.0 x16 = ~31 GB/s theoretical max. A spike here during inference is expected with the -ot flag (MoE experts offloaded to CPU RAM). If this is pegged near maximum, PCIe bandwidth is your inference bottleneck and you should consider reducing expert offloading.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "PCIe traffic between the GPU and the rest of the system.\n\nKey signals:\n• PCIe Bandwidth (Mb/s) — the data highway for MoE expert weight fetches (-ot CPU-offload); expected to spike during inference. Pegged near the PCIe 4.0 x16 ceiling (~31 GB/s) means PCIe bandwidth, not compute, is your bottleneck — consider offloading fewer experts.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
           "unit": "Mbits/s"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 9 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 9
+      },
       "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "pcie_bandwidth{gpu_id=\"0\"}",
-          "legendFormat": "PCIe Bandwidth (Mb/s)"
+          "legendFormat": "PCIe Bandwidth (Mb/s)",
+          "refId": "A"
         }
       ],
       "title": "PCIe Bandwidth (MoE Expert Transfer)",
       "type": "timeseries"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "GTT (Graphics Translation Table) is system RAM that the GPU has mapped and can DMA directly without CPU involvement. With -ot \".ffn_.*_exps.=CPU\" your MoE expert weights should live here — expect 10-15 GB used when a model is loaded. If gpu_used_gtt stays near 0 while the model is running, the experts are going into regular malloc RAM instead (still works, may be slightly slower). Total GTT available is ~30 GB.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "System RAM the GPU has DMA-mapped (GTT) for CPU-offloaded MoE expert weights.\n\nKey signals:\n• GTT Used GB — expect 10-15GB when a model with -ot CPU-offloaded experts is loaded; near-zero while a model runs means experts landed in regular malloc RAM instead (still works, may be slightly slower).\n• GTT Free GB — headroom against the ~30GB total GTT pool.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
           "unit": "gbytes"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 9 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 9
+      },
       "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "gpu_used_gtt{gpu_id=\"0\"} / 1024",
-          "legendFormat": "GTT Used GB (MoE experts in RAM)"
+          "legendFormat": "GTT Used GB (MoE experts in RAM)",
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "gpu_free_gtt{gpu_id=\"0\"} / 1024",
-          "legendFormat": "GTT Free GB"
+          "legendFormat": "GTT Free GB",
+          "refId": "B"
         }
       ],
       "title": "GTT Memory (System RAM Mapped for GPU)",
       "type": "timeseries"
     },
-
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
       "id": 101,
-      "title": "LLM Inference (llama.cpp)",
+      "panels": [],
+      "title": "LLM Inference",
       "type": "row"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Tokens generated per second during the decode/output phase — this is the number users experience as typing speed. Port 8081 = coder model (Qwen3-Coder-30B-A3B), port 8082 = reasoner model (Qwen3-30B-A3B with thinking mode). Typical range with your setup: 15-40 tok/s. A sustained drop here indicates GPU thermal throttling, VRAM pressure, PCIe bandwidth saturation from MoE fetches, or RAM exhaustion causing swap activity.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "short",
-          "custom2": {}
-        },
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
       },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 18 },
-      "id": 7,
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "llamacpp:predicted_tokens_seconds{instance=\"ai.local:8081\"}",
-          "legendFormat": "Coder (8081) tok/s"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "llamacpp:predicted_tokens_seconds{instance=\"ai.local:8082\"}",
-          "legendFormat": "Reasoner (8082) tok/s"
-        }
-      ],
-      "title": "Token Generation Speed (decode phase)",
-      "type": "timeseries"
-    },
-
-    {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Tokens processed per second during the prefill phase — digesting your input prompt and any context/file maps before generation begins. Usually much faster than decode (100-500 tok/s). Slow prefill means a very large context or KV cache pressure. In aider architect mode with large file maps this phase can take several seconds.",
+      "description": "Requests actively generating vs. waiting, per model.\n\nKey signals:\n• {{model}} processing — normally 0 or 1 in single-user use.\n• {{model}} deferred (queued) — requests waiting because the server is busy; growth here means concurrent requests are being sent (e.g. multiple clients hitting the router), which should be rare for personal use.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 18 },
-      "id": 8,
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "llamacpp:prompt_tokens_seconds{instance=\"ai.local:8081\"}",
-          "legendFormat": "Coder (8081) tok/s"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "llamacpp:prompt_tokens_seconds{instance=\"ai.local:8082\"}",
-          "legendFormat": "Reasoner (8082) tok/s"
-        }
-      ],
-      "title": "Prompt Processing Speed (prefill phase)",
-      "type": "timeseries"
-    },
-
-    {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "requests_processing = actively generating tokens right now (normally 0 or 1 for personal use). requests_deferred = waiting in queue because the server is busy with another request. llama.cpp processes one request at a time; if deferred grows it means aider or OpenWebUI sent multiple concurrent requests. This should be rare in single-user personal use.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "short",
-          "min": 0
-        },
-        "overrides": []
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 18
       },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 18 },
       "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "llamacpp:requests_processing{instance=\"ai.local:8081\"}",
-          "legendFormat": "Coder processing"
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "llamacpp:requests_processing",
+          "legendFormat": "{{model}} processing",
+          "range": true,
+          "refId": "C"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "llamacpp:requests_deferred{instance=\"ai.local:8081\"}",
-          "legendFormat": "Coder deferred (queued)"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "llamacpp:requests_processing{instance=\"ai.local:8082\"}",
-          "legendFormat": "Reasoner processing"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "llamacpp:requests_deferred{instance=\"ai.local:8082\"}",
-          "legendFormat": "Reasoner deferred (queued)"
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "llamacpp:requests_deferred",
+          "legendFormat": "{{model}} deferred (queued)",
+          "range": true,
+          "refId": "D"
         }
       ],
       "title": "Request Queue",
       "type": "timeseries"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Fraction of the --ctx-size 65536 token context window currently occupied (shown as percentage). When this approaches 100% llama.cpp starts evicting the oldest tokens from the KV cache to make room, which degrades coherence in long sessions. In aider architect mode with large file maps this can fill quickly. The reasoner model accumulates extended thinking blocks which also consume context.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Prefill-phase tokens/sec — digesting the input prompt before generation starts.\n\nKey signals:\n• {{model}} tokens/sec — usually much faster than decode (100-500 tok/s). A slow prefill points to a very large context or KV-cache pressure; large file maps in agentic/architect workflows can take several seconds here.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "percent",
-          "min": 0,
-          "max": 100,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 80 },
-              { "color": "red", "value": 95 }
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
             ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 26 },
-      "id": 10,
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "llamacpp:kv_cache_usage_ratio{instance=\"ai.local:8081\"} * 100",
-          "legendFormat": "Coder KV Cache %"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "llamacpp:kv_cache_usage_ratio{instance=\"ai.local:8082\"} * 100",
-          "legendFormat": "Reasoner KV Cache %"
-        }
-      ],
-      "title": "KV Cache Usage (context window fill %)",
-      "type": "timeseries"
-    },
-
-    {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Total tokens predicted (generated) since server start — a cumulative workload counter. The rate of this tells you average inference activity over time. Use rate(llamacpp:tokens_predicted_total[5m]) for throughput over a window.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 26 },
-      "id": 11,
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 18
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "rate(llamacpp:tokens_predicted_total{instance=\"ai.local:8081\"}[5m])",
-          "legendFormat": "Coder avg tok/s (5m)"
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "rate(llamacpp:prompt_tokens_total[1m])",
+          "legendFormat": "{{model}} tokens/sec",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Prompt Processing Speed (prefill phase)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Decode-phase tokens/sec — what you experience as typing speed.\n\nKey signals:\n• {{model}} tokens/sec — per active router model (Baloza-v0.3, ninni-v0.1). Typical range 15-40 tok/s; a sustained drop signals GPU thermal throttling, VRAM pressure, PCIe saturation from MoE fetches, or RAM exhaustion causing swap.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
         },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 18
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "rate(llamacpp:tokens_predicted_total{instance=\"ai.local:8082\"}[5m])",
-          "legendFormat": "Reasoner avg tok/s (5m)"
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "llamacpp:tokens_predicted_seconds_total",
+          "legendFormat": "{{model}} tokens/sec",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Token Generation Speed (decode phase)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Smoothed generation throughput over a trailing 5-minute window.\n\nKey signals:\n• {{model}} avg tok/s (5m) — a less noisy view of decode speed than the instantaneous panel; use it to spot gradual degradation (thermal throttling, memory pressure) that a single spiky reading would hide.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "rate(llamacpp:tokens_predicted_total[5m])",
+          "legendFormat": "{{model}} avg tok/s (5m)",
+          "range": true,
+          "refId": "B"
         }
       ],
       "title": "Average Token Throughput (5m rate)",
       "type": "timeseries"
     },
-
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 34 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
       "id": 102,
+      "panels": [],
       "title": "RAM — Critical for MoE Offloading",
       "type": "row"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "MemAvailable = free + reclaimable page cache — the real usable memory number. This must stay above ~8 GB or the kernel starts evicting MoE expert pages, causing them to be re-read from disk and massively degrading inference speed. Cached includes your model weight pages; it will shrink under memory pressure as the kernel reclaims it for other uses.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Host memory availability — critical because MoE experts live in RAM/GTT, not just VRAM.\n\nKey signals:\n• Available GB — free + reclaimable page cache; must stay above ~8GB or the kernel starts evicting MoE expert pages, forcing re-reads from disk and cratering inference speed.\n• Used GB — climbing steadily alongside Available dropping is the early warning sign.\n• Page Cache GB — includes model weight pages; shrinks under memory pressure as the kernel reclaims it.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "gbytes",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 12 },
-              { "color": "red", "value": 8 }
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 12
+              },
+              {
+                "color": "red",
+                "value": 8
+              }
             ]
-          }
+          },
+          "unit": "gbytes"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 35 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 35
+      },
       "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_memory_MemAvailable_bytes / 1024^3",
-          "legendFormat": "Available GB"
+          "legendFormat": "Available GB",
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / 1024^3",
-          "legendFormat": "Used GB"
+          "legendFormat": "Used GB",
+          "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_memory_Cached_bytes / 1024^3",
-          "legendFormat": "Page Cache GB"
+          "legendFormat": "Page Cache GB",
+          "refId": "C"
         }
       ],
       "title": "RAM Overview (64 GB total)",
       "type": "timeseries"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "SwapUsed MUST stay at 0 during inference. Any swap activity means MoE expert weights are being paged to disk which tanks generation speed from ~30 tok/s to potentially <1 tok/s. You currently have ~2 GB swap used at idle — investigate before running inference under memory pressure. Zswap is a compressed RAM cache in front of swap (still in RAM but compressed); better than disk swap but still indicates memory pressure. You already have 2.38 GB in zswap at idle.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Any use of swap or its compressed front-end during inference is a red flag.\n\nKey signals:\n• Swap Used GB — must stay at 0 during inference; any activity means MoE expert weights are being paged to disk, which can tank generation speed from ~30 tok/s to <1 tok/s.\n• Zswap Compressed GB — a compressed RAM cache in front of swap; better than disk swap but still indicates memory pressure building.\n• Swap Cached GB — pages that were swapped out and read back in without being modified.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "gbytes",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 0.5 }
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 0.5
+              }
             ]
-          }
+          },
+          "unit": "gbytes"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 35 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 35
+      },
       "id": 13,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "(node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) / 1024^3",
-          "legendFormat": "Swap Used GB (should be 0)"
+          "legendFormat": "Swap Used GB (should be 0)",
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_memory_Zswap_bytes / 1024^3",
-          "legendFormat": "Zswap Compressed GB"
+          "legendFormat": "Zswap Compressed GB",
+          "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_memory_SwapCached_bytes / 1024^3",
-          "legendFormat": "Swap Cached GB"
+          "legendFormat": "Swap Cached GB",
+          "refId": "C"
         }
       ],
       "title": "Swap & Zswap (must be 0 during inference)",
       "type": "timeseries"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "PSI (Pressure Stall Information) — fraction of time (0.0 to 1.0) that processes were stalled waiting for memory or I/O. memory_stalled = at least one process made zero progress due to memory unavailability. This is your most sensitive MoE RAM pressure indicator. If this rises above 0.1 during inference the kernel is struggling to serve expert weight pages fast enough. io_stalled = completely blocked on disk I/O — should be near 0; a spike means something is hitting disk (swap, log writes, Docker overlays).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Fraction of time processes were stalled waiting for memory or disk I/O.\n\nKey signals:\n• Memory Stalled — most sensitive MoE RAM-pressure indicator; above 0.1 during inference means the kernel can't serve expert weight pages fast enough.\n• Memory Waiting — softer precursor to Stalled.\n• I/O Stalled / I/O Waiting — should sit near 0; a spike means something is hitting disk (swap activity, log writes, Docker overlay writes).",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "percentunit",
-          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
           "max": 1,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 0.1 },
-              { "color": "red", "value": 0.3 }
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 0.1
+              },
+              {
+                "color": "red",
+                "value": 0.3
+              }
             ]
-          }
+          },
+          "unit": "percentunit"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 35 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 35
+      },
       "id": 14,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
           "expr": "rate(node_pressure_memory_stalled_seconds_total[1m])",
-          "legendFormat": "Memory Stalled"
+          "legendFormat": "Memory Stalled",
+          "range": true,
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
           "expr": "rate(node_pressure_memory_waiting_seconds_total[1m])",
-          "legendFormat": "Memory Waiting"
+          "legendFormat": "Memory Waiting",
+          "range": true,
+          "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
           "expr": "rate(node_pressure_io_stalled_seconds_total[1m])",
-          "legendFormat": "I/O Stalled"
+          "legendFormat": "I/O Stalled",
+          "range": true,
+          "refId": "C"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
           "expr": "rate(node_pressure_io_waiting_seconds_total[1m])",
-          "legendFormat": "I/O Waiting"
+          "legendFormat": "I/O Waiting",
+          "range": true,
+          "refId": "D"
         }
       ],
       "title": "Pressure Stall Index — Memory & I/O (PSI)",
       "type": "timeseries"
     },
-
     {
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 43 },
-      "id": 103,
-      "title": "CPU — Ryzen 9 9950X",
-      "type": "row"
-    },
-
-    {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Overall CPU utilization across all 32 threads. The 9950X handles MoE expert dispatch, KV cache management, tokenisation, and Docker/network overhead. Expect 10-40% CPU usage during active inference even though the GPU is doing matrix math. iowait specifically — time CPUs spent idle waiting for storage I/O. Should be near 0 during inference; elevated iowait means a disk bottleneck (swap activity, model re-reads, Docker overlay writes).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Live swap-in/out rate — the signal that actually matters for inference degradation, unlike the static Swap Used gauge above.\n\nKey signals:\n• pswpout (swap-out) — nonzero for a sustained period means the kernel is actively paging things to disk right now, which is what actually hurts inference speed.\n• pswpin (swap-in) — something previously swapped out just got touched and read back.\n• Both flat at zero is normal even when Swap Used stays elevated — a static leftover footprint from a past memory-pressure event is harmless; only active churn here matters. Backs the 'Active swap-out churn' alert.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
           "min": 0,
-          "max": 100
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 0.01
+              }
+            ]
+          },
+          "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 44 },
-      "id": 15,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "id": 201,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "rate(node_vmstat_pswpout[1m])",
+          "legendFormat": "pswpout (swap-out)",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "rate(node_vmstat_pswpin[1m])",
+          "legendFormat": "pswpin (swap-in)",
+          "refId": "B"
+        }
+      ],
+      "title": "Swap Activity (pages/sec)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 51
+      },
+      "id": 103,
+      "panels": [],
+      "title": "CPU — Ryzen 9 9950X",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Overall CPU load across all 32 threads during inference.\n\nKey signals:\n• CPU Utilization % — expect 10-40% during active inference even though the GPU does the matrix math; the CPU handles MoE expert dispatch, KV-cache management, tokenisation, and Docker/network overhead.\n• iowait % — should be near 0; elevated iowait means a disk bottleneck (swap activity, model re-reads, Docker overlay writes).\n• system % — kernel-space CPU time; sustained high values alongside iowait point to the same disk-bottleneck causes.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 52
+      },
+      "id": 15,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
           "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[1m])) * 100)",
-          "legendFormat": "CPU Utilization %"
+          "legendFormat": "CPU Utilization %",
+          "range": true,
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
           "expr": "avg(rate(node_cpu_seconds_total{mode=\"iowait\"}[1m])) * 100",
-          "legendFormat": "iowait %"
+          "legendFormat": "iowait %",
+          "range": true,
+          "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
           "expr": "avg(rate(node_cpu_seconds_total{mode=\"system\"}[1m])) * 100",
-          "legendFormat": "system %"
+          "legendFormat": "system %",
+          "range": true,
+          "refId": "C"
         }
       ],
       "title": "CPU Utilization",
       "type": "timeseries"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Current CPU clock speed. All 32 cores are on powersave governor — switch to performance governor for inference workloads. On powersave, idle cores park at 624 MHz which slows MoE expert dispatch. On performance, all cores run near the 5.7 GHz boost ceiling. To switch: echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "hertz",
-          "custom2": {}
-        },
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
       },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 44 },
-      "id": 16,
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "avg(node_cpu_scaling_frequency_hertz) / 1e9",
-          "legendFormat": "Avg GHz"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "min(node_cpu_scaling_frequency_hertz) / 1e9",
-          "legendFormat": "Min GHz (parked cores)"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "max(node_cpu_scaling_frequency_hertz) / 1e9",
-          "legendFormat": "Max GHz (boost)"
-        }
-      ],
-      "title": "CPU Frequency — WARNING: currently on powersave governor",
-      "type": "timeseries"
-    },
-
-    {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Tctl = what most tools report; includes a +27C offset on Zen 5 so 67C here = ~40C actual — use Tccd values for real die temperatures. Tccd1/Tccd2 = actual temperatures of each compute die (16 cores each). CPU Package from ASUS EC = motherboard's measurement of overall package power. VRM = voltage regulator temperature; above 90C causes CPU throttling. Currently at a healthy 45C.",
+      "description": "Per-core clock speed — flags whether the powersave governor is limiting inference.\n\nKey signals:\n• Avg GHz — overall clock average.\n• Min GHz (parked cores) — on the powersave governor idle cores park at ~624MHz, slowing MoE expert dispatch; switch to performance governor for inference workloads (echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor).\n• Max GHz (boost) — should approach the ~5.7GHz boost ceiling under load on the performance governor.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "celsius",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 80 },
-              { "color": "red", "value": 90 }
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
             ]
-          }
+          },
+          "unit": "hertz"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 44 },
-      "id": 17,
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 52
+      },
+      "id": 16,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "avg(node_cpu_scaling_frequency_hertz) / 1e9",
+          "legendFormat": "Avg GHz",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "min(node_cpu_scaling_frequency_hertz) / 1e9",
+          "legendFormat": "Min GHz (parked cores)",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "max(node_cpu_scaling_frequency_hertz) / 1e9",
+          "legendFormat": "Max GHz (boost)",
+          "refId": "C"
+        }
+      ],
+      "title": "CPU Frequency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Zen 5 die and VRM temperatures (Tctl needs a known offset correction).\n\nKey signals:\n• Tctl (includes +27°C offset) — what most tools report; not the real die temp on Zen 5 (67°C here ≈ 40°C actual) — use Tccd for the real number.\n• Tccd1/Tccd2 (die 1/2 actual) — real per-die temperatures (16 cores each).\n• CPU Package (ASUS EC) — motherboard's overall package reading.\n• VRM — voltage regulator temp; above 90°C causes CPU throttling.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 52
+      },
+      "id": 17,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_hwmon_temp_celsius{chip=\"pci0000:00_0000:00:18_3\",sensor=\"temp1\"}",
-          "legendFormat": "Tctl (includes +27C offset)"
+          "legendFormat": "Tctl (includes +27C offset)",
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_hwmon_temp_celsius{chip=\"pci0000:00_0000:00:18_3\",sensor=\"temp3\"}",
-          "legendFormat": "Tccd1 (die 1 actual)"
+          "legendFormat": "Tccd1 (die 1 actual)",
+          "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_hwmon_temp_celsius{chip=\"pci0000:00_0000:00:18_3\",sensor=\"temp4\"}",
-          "legendFormat": "Tccd2 (die 2 actual)"
+          "legendFormat": "Tccd2 (die 2 actual)",
+          "refId": "C"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_hwmon_temp_celsius{chip=\"platform_asus_ec_sensors\",sensor=\"temp2\"}",
-          "legendFormat": "CPU Package (ASUS EC)"
+          "legendFormat": "CPU Package (ASUS EC)",
+          "refId": "D"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_hwmon_temp_celsius{chip=\"platform_asus_ec_sensors\",sensor=\"temp5\"}",
-          "legendFormat": "VRM"
+          "legendFormat": "VRM",
+          "refId": "E"
         }
       ],
       "title": "CPU Temperatures",
       "type": "timeseries"
     },
-
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 52 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 60
+      },
       "id": 104,
+      "panels": [],
       "title": "Storage",
       "type": "row"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Throughput on sda — the physical disk backing your /data XFS volume where models are stored. During model load you will see a large burst here (loading ~20 GB model file). During inference with -ot flag, if MoE expert pages have been evicted from RAM they will be re-read from disk here — this should not happen during normal operation but will appear if you run out of RAM.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "MBs"
-        },
-        "overrides": []
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
       },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 53 },
-      "id": 18,
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "rate(node_disk_read_bytes_total{device=\"sda\"}[1m]) / 1024^2",
-          "legendFormat": "sda Read MB/s (/data)"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "rate(node_disk_written_bytes_total{device=\"sda\"}[1m]) / 1024^2",
-          "legendFormat": "sda Write MB/s"
-        }
-      ],
-      "title": "Storage Throughput — /data (sda)",
-      "type": "timeseries"
-    },
-
-    {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Throughput on your WD Black SN850X 4TB NVMe (system drive, Docker storage on /data/docker). Reads during inference = Docker overlay activity or swap on NVMe. High write rate = container log writes, Docker layer writes, or swap. This drive is fast (7 GB/s) so it should not be a bottleneck for normal inference, but swap activity here would still hurt.",
+      "description": "Read/write throughput on sda, the system disk.\n\nKey signals:\n• Read/Write MB/s — should sit near-idle during normal inference; sustained activity suggests OS/Docker overlay writes, log growth, or swap spilling onto this disk.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "MBs"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 53 },
-      "id": 19,
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "rate(node_disk_read_bytes_total{device=\"nvme0n1\"}[1m]) / 1024^2",
-          "legendFormat": "NVMe Read MB/s"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "expr": "rate(node_disk_written_bytes_total{device=\"nvme0n1\"}[1m]) / 1024^2",
-          "legendFormat": "NVMe Write MB/s"
-        }
-      ],
-      "title": "Storage Throughput — NVMe System Drive (nvme0n1)",
-      "type": "timeseries"
-    },
-
-    {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "/data has ~3.8 TB free out of ~3.9 TB total — plenty of space for model downloads. Each Qwen3 model at Q4_K_XL is roughly 20 GB. Alert at 500 GB remaining to give you time before the next download fails mid-transfer. Root / has ~44 GB free — Docker images and system packages live here. Home has ~96 GB free.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "unit": "gbytes",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 200 },
-              { "color": "red", "value": 50 }
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
             ]
           },
-          "mappings": []
+          "unit": "MBs"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 53 },
-      "id": 20,
-      "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
-        "orientation": "horizontal",
-        "displayMode": "gradient",
-        "text": {}
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 61
       },
+      "id": 18,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "rate(node_disk_read_bytes_total{device=\"sda\"}[1m]) / 1024^2",
+          "legendFormat": "sda Read MB/s (/data)",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "rate(node_disk_written_bytes_total{device=\"sda\"}[1m]) / 1024^2",
+          "legendFormat": "sda Write MB/s",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Storage Throughput — system (sda)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Read/write throughput on the NVMe drive backing /data, where models live.\n\nKey signals:\n• Read MB/s — a large burst here during model load is expected (reading a ~20GB model file off disk).\n• Write MB/s — should be near-idle outside model downloads; sustained writes during inference are unexpected.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "MBs"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 61
+      },
+      "id": 19,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "rate(node_disk_read_bytes_total{device=\"nvme0n1\"}[1m]) / 1024^2",
+          "legendFormat": "NVMe Read MB/s",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "rate(node_disk_written_bytes_total{device=\"nvme0n1\"}[1m]) / 1024^2",
+          "legendFormat": "NVMe Write MB/s",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Storage Throughput — NVMe /data Drive (nvme0n1)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Free space across the mounts that matter for model storage and the OS.\n\nKey signals:\n• /data free GB — model storage; colored by percentage remaining since each Q4_K_XL model download is roughly 20GB.\n• / free GB — root filesystem; holds Docker images and system packages.\n• /home free GB — user data.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "gbytes"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/ free GB"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "percentage",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 20
+                    },
+                    {
+                      "color": "green",
+                      "value": 30
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 50
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/data free GB"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "percentage",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 20
+                    },
+                    {
+                      "color": "green",
+                      "value": 30
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 3686.4
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "/home free GB"
+            },
+            "properties": [
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 179.5
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "percentage",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": 0
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 20
+                    },
+                    {
+                      "color": "green",
+                      "value": 30
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 61
+      },
+      "id": 20,
+      "options": {
+        "displayMode": "lcd",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "text": {},
+        "valueMode": "color"
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_filesystem_avail_bytes{mountpoint=\"/data\"} / 1024^3",
-          "legendFormat": "/data free GB"
+          "legendFormat": "/data free GB",
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_filesystem_avail_bytes{mountpoint=\"/\"} / 1024^3",
-          "legendFormat": "/ free GB"
+          "legendFormat": "/ free GB",
+          "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_filesystem_avail_bytes{mountpoint=\"/home\"} / 1024^3",
-          "legendFormat": "/home free GB"
+          "legendFormat": "/home free GB",
+          "refId": "C"
         }
       ],
       "title": "Filesystem Free Space",
       "type": "bargauge"
     },
-
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 61 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 69
+      },
       "id": 105,
+      "panels": [],
       "title": "System Health",
       "type": "row"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Load average = average number of runnable + uninterruptible processes over the time window. Your system has 32 threads so load of 32 means all threads are fully occupied. Sustained load above 32 means processes are queuing for CPU time. During inference with aider architect+editor mode you may see load of 4-8 which is normal.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Runnable + uninterruptible process count, averaged over 1/5/15 minutes.\n\nKey signals:\n• 1m / 5m / 15m load — the system has 32 threads, so load of 32 means every thread is occupied; sustained load above 32 means processes are queuing for CPU time. Load of 4-8 during active inference (e.g. agentic coding workflows) is normal.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 24 },
-              { "color": "red", "value": 32 }
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 24
+              },
+              {
+                "color": "red",
+                "value": 32
+              }
             ]
-          }
+          },
+          "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 62 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 70
+      },
       "id": 21,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_load1",
-          "legendFormat": "1m load"
+          "legendFormat": "1m load",
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_load5",
-          "legendFormat": "5m load"
+          "legendFormat": "5m load",
+          "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_load15",
-          "legendFormat": "15m load"
+          "legendFormat": "15m load",
+          "refId": "C"
         }
       ],
       "title": "Load Average (32 threads total)",
       "type": "timeseries"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "WiFi is your active network interface (wlan0 — the br-64d067d8570a bridge serves Docker containers). Useful when OpenWebUI is streaming responses to your phone or tablet over LAN. Large receive spikes = downloading model updates or pulling Docker images. Large transmit spikes = streaming a long generated response to a client.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "RX/TX throughput on the active WiFi interface (wlan0; the br-* bridge serves Docker containers).\n\nKey signals:\n• WiFi RX MB/s — large receive spikes mean model downloads or Docker image pulls.\n• WiFi TX MB/s — large transmit spikes mean a long generated response streaming out to a LAN client (phone, tablet, browser).",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
           "unit": "MBs"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 62 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 70
+      },
       "id": 22,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
           "expr": "rate(node_network_receive_bytes_total{device=\"wlan0\"}[1m]) / 1024^2",
-          "legendFormat": "WiFi RX MB/s"
+          "legendFormat": "WiFi RX MB/s",
+          "range": true,
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
           "expr": "rate(node_network_transmit_bytes_total{device=\"wlan0\"}[1m]) / 1024^2",
-          "legendFormat": "WiFi TX MB/s"
+          "legendFormat": "WiFi TX MB/s",
+          "range": true,
+          "refId": "B"
         }
       ],
       "title": "Network Throughput (WiFi)",
       "type": "timeseries"
     },
-
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "NVMe temperature — currently a cool 31.85C. Most NVMe drives throttle reads at 70-75C causing sudden drops in sequential read speed. This would hurt model load time significantly. The WD Black SN850X has active thermal management; keep it below 65C for best sustained throughput. GPU ECC uncorrectable errors must always be 0 — any non-zero value indicates a hardware memory fault that could silently corrupt model weights and produce garbage output.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "NVMe and motherboard thermals, plus GPU memory error-correction status.\n\nKey signals:\n• NVMe Temp °C — most NVMe drives throttle reads at 70-75°C, slowing model load times; keep below 65°C for sustained throughput.\n• Motherboard °C — general board-level thermal reading.\n• GPU ECC Uncorrectable Errors — must always be 0; any non-zero value indicates a hardware memory fault that could silently corrupt model weights and produce garbage output.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 60 },
-              { "color": "red", "value": 70 }
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 60
+              },
+              {
+                "color": "red",
+                "value": 70
+              }
             ]
           },
-          "unit": "celsius",
-          "mappings": []
+          "unit": "celsius"
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "GPU ECC Uncorrectable Errors" },
+            "matcher": {
+              "id": "byName",
+              "options": "GPU ECC Uncorrectable Errors"
+            },
             "properties": [
               {
                 "id": "thresholds",
                 "value": {
                   "mode": "absolute",
                   "steps": [
-                    { "color": "green", "value": null },
-                    { "color": "red", "value": 1 }
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
                   ]
                 }
               },
-              { "id": "unit", "value": "short" }
+              {
+                "id": "unit",
+                "value": "short"
+              }
             ]
           }
         ]
       },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 62 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 70
+      },
       "id": 23,
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
-        "orientation": "auto",
-        "textMode": "auto",
         "colorMode": "background",
         "graphMode": "area",
-        "justifyMode": "auto"
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "12.2.0",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_hwmon_temp_celsius{chip=\"nvme_nvme0\",sensor=\"temp1\"}",
-          "legendFormat": "NVMe Temp °C"
+          "legendFormat": "NVMe Temp °C",
+          "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "node_hwmon_temp_celsius{chip=\"platform_asus_ec_sensors\",sensor=\"temp3\"}",
-          "legendFormat": "Motherboard °C"
+          "legendFormat": "Motherboard °C",
+          "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
           "expr": "gpu_ecc_uncorrect_total{gpu_id=\"0\"}",
-          "legendFormat": "GPU ECC Uncorrectable Errors"
+          "legendFormat": "GPU ECC Uncorrectable Errors",
+          "refId": "C"
         }
       ],
       "title": "NVMe Temp / Motherboard Temp / GPU ECC",
       "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Which router-mode model (of models.ini) is currently resident and serving.\n\nKey signals:\n• Green tile = that model is currently loaded (up=1).\n• Red tile = not loaded (up=0) — expected for the inactive model under --models-max 1, not an error by itself.\n• If both tiles are red, the router has no model loaded at all.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "not loaded"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "loaded"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 78
+      },
+      "id": 200,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "name",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "max by (model) (up{job=\"ai-llama\"})",
+          "instant": true,
+          "legendFormat": "{{model}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Currently Loaded Model",
+      "type": "stat"
     }
-
   ],
-  "refresh": "10s",
-  "schemaVersion": 38,
-  "tags": ["ai", "llama.cpp", "amd", "gpu", "inference"],
+  "preload": false,
+  "refresh": "5s",
+  "schemaVersion": 42,
+  "tags": [
+    "ai",
+    "llama.cpp",
+    "amd",
+    "gpu",
+    "inference"
+  ],
   "templating": {
     "list": [
       {
-        "current": {},
-        "hide": 0,
+        "current": {
+          "text": "prometheus",
+          "value": "ff00thp4q639cc"
+        },
         "includeAll": false,
+        "label": "Prometheus Datasource",
         "name": "DS_PROMETHEUS",
         "options": [],
         "query": "prometheus",
         "refresh": 1,
-        "type": "datasource",
-        "label": "Prometheus Datasource"
+        "type": "datasource"
       }
     ]
   },
-  "time": { "from": "now-15m", "to": "now" },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
   "timepicker": {},
-  "timezone": "browser",
+  "timezone": "Europe/Amsterdam",
   "title": "AI Stack — llama.cpp + RX 7900 XTX",
   "uid": "ai-stack-v1",
-  "version": 1,
-  "weekStart": ""
+  "version": 50
 }
