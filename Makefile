@@ -25,6 +25,8 @@ INSTALL_TARGETS   := $(addprefix install-,$(SERVICES))
 UNINSTALL_TARGETS := $(addprefix uninstall-,$(SERVICES))
 BUILD_IMAGES      := llama qdrant-mcp one-search-mcp
 BUILD_TARGETS     := $(addprefix build-,$(BUILD_IMAGES))
+INSTALL_BUILD_TARGETS   := $(addprefix install-,$(BUILD_IMAGES))
+INSTALL_NOBUILD_TARGETS := $(filter-out $(INSTALL_BUILD_TARGETS) install-llama-embedding,$(INSTALL_TARGETS))
 
 .PHONY: help menuconfig config service install $(INSTALL_TARGETS) \
         uninstall $(UNINSTALL_TARGETS) install-nginx uninstall-nginx \
@@ -169,9 +171,14 @@ $(SYSTEMD_DIR)/%.service: services/$$*/$$*.service $(CONF_DEST)
 
 service: $(UNIT_TARGETS)
 
-install: network $(UNIT_TARGETS)
+install: network build $(UNIT_TARGETS)
 
-$(INSTALL_TARGETS): install-%: network $(SYSTEMD_DIR)/%.service
+$(INSTALL_BUILD_TARGETS): install-%: network build-% $(SYSTEMD_DIR)/%.service
+
+# llama-embedding has no build-llama-embedding target of its own — it shares llama's image.
+install-llama-embedding: network build-llama $(SYSTEMD_DIR)/llama-embedding.service
+
+$(INSTALL_NOBUILD_TARGETS): install-%: network $(SYSTEMD_DIR)/%.service
 
 install-nginx:
 	@set -euo pipefail
