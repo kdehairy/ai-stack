@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "AI Stack monitoring dashboard for llama.cpp inference server, AMD RX 7900 XTX, and host system. Covers GPU VRAM/compute/thermals, LLM token throughput, MoE RAM offloading, CPU, storage, and system health.",
+  "description": "AI Stack monitoring dashboard for the llama.cpp inference server, its AMD GPUs (currently 2× Radeon AI PRO R9700; pick cards with the GPU variable), and the host system. Covers GPU VRAM/compute/thermals, LLM token throughput, MoE RAM offloading, CPU, storage, and system health.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -40,7 +40,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "VRAM allocated vs. free on the RX 7900 XTX's 24GB pool.\n\nKey signals:\n• Used GB — climbing toward 23-24GB risks OOM (orange/red thresholds at 22/23.5GB).\n• Free GB — should track inversely with Used; a sudden jump up means a model crashed or was unloaded.\n• Total GB (reference) — flat at 24GB, just a scale anchor.",
+      "description": "VRAM allocated vs. free, one line per GPU (32 GB each on the Radeon AI PRO R9700s).\n\nKey signals:\n• GPU n Used GB — climbing toward 31-32GB on a card risks OOM (orange/red thresholds at 30/31.5GB).\n• GPU n Free GB — should track inversely with Used; a sudden jump up means a model crashed or was unloaded.\n• GPU n Total GB (reference) — flat at ~32GB, just a scale anchor.\n• With a model split across both cards, expect Used to rise on both GPUs together.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -90,11 +90,11 @@
               },
               {
                 "color": "orange",
-                "value": 22
+                "value": 30
               },
               {
                 "color": "red",
-                "value": 23.5
+                "value": 31.5
               }
             ]
           },
@@ -129,8 +129,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_used_vram{gpu_id=\"0\"} / 1024",
-          "legendFormat": "Used GB",
+          "expr": "gpu_used_vram{gpu_id=~\"${gpu:regex}\"} / 1024",
+          "legendFormat": "GPU {{gpu_id}} Used GB",
           "refId": "A"
         },
         {
@@ -138,8 +138,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_free_vram{gpu_id=\"0\"} / 1024",
-          "legendFormat": "Free GB",
+          "expr": "gpu_free_vram{gpu_id=~\"${gpu:regex}\"} / 1024",
+          "legendFormat": "GPU {{gpu_id}} Free GB",
           "refId": "B"
         },
         {
@@ -147,8 +147,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_total_vram{gpu_id=\"0\"} / 1024",
-          "legendFormat": "Total GB (reference)",
+          "expr": "gpu_total_vram{gpu_id=~\"${gpu:regex}\"} / 1024",
+          "legendFormat": "GPU {{gpu_id}} Total GB (reference)",
           "refId": "C"
         }
       ],
@@ -160,7 +160,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Shader/compute vs. memory-controller utilization on the GPU.\n\nKey signals:\n• Compute (gfx) % — high value means the GPU core is compute-bound (matrix multiply saturated).\n• Memory Controller (umc) % — high value means VRAM bandwidth-bound; usually the dominant bottleneck for MoE models since experts stream from memory.\n• gfx high + umc low = compute-bound; umc high = bandwidth-bound (expected for large MoE models).",
+      "description": "Shader/compute vs. memory-controller utilization, one line per GPU.\n\nKey signals:\n• Compute (gfx) % — high value means the GPU core is compute-bound (matrix multiply saturated).\n• Memory Controller (umc) % — high value means VRAM bandwidth-bound; usually the dominant bottleneck for MoE models since experts stream from memory.\n• gfx high + umc low = compute-bound; umc high = bandwidth-bound (expected for large MoE models).\n• With a model split across both cards (layer split), the GPUs take turns being busy rather than peaking together.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -247,8 +247,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_gfx_activity{gpu_id=\"0\"}",
-          "legendFormat": "Compute (gfx) %",
+          "expr": "gpu_gfx_activity{gpu_id=~\"${gpu:regex}\"}",
+          "legendFormat": "GPU {{gpu_id}} Compute (gfx) %",
           "refId": "A"
         },
         {
@@ -256,8 +256,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_umc_activity{gpu_id=\"0\"}",
-          "legendFormat": "Memory Controller %",
+          "expr": "gpu_umc_activity{gpu_id=~\"${gpu:regex}\"}",
+          "legendFormat": "GPU {{gpu_id}} Memory Controller %",
           "refId": "B"
         }
       ],
@@ -269,7 +269,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "GPU power draw against its configured TDP cap.\n\nKey signals:\n• Instantaneous (W) — spiky moment-to-moment draw; idle ~16W, full inference load 180-280W.\n• Average Package (W) — smoothed reading, easier to read the trend.\n• Power Cap (W) — the ceiling (default 315W, hw max 350W); if Instantaneous rides the cap continuously, the GPU is power-limited and raising the cap could raise throughput.",
+      "description": "Power draw per GPU against its configured cap.\n\nKey signals:\n• GPU n Instantaneous (W) — spiky moment-to-moment draw.\n• GPU n Average Package (W) — smoothed reading, easier to read the trend.\n• Power Cap PCI xx:xx (W) — each card's ceiling (R9700: 300W board power; check with rocm-smi); if Instantaneous rides the cap continuously, that GPU is power-limited.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -328,8 +328,8 @@
         "overrides": [
           {
             "matcher": {
-              "id": "byName",
-              "options": "Power Cap (W)"
+              "id": "byRegexp",
+              "options": "^Power Cap .*"
             },
             "properties": [
               {
@@ -380,8 +380,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_power_usage{gpu_id=\"0\"}",
-          "legendFormat": "Instantaneous (W)",
+          "expr": "gpu_power_usage{gpu_id=~\"${gpu:regex}\"}",
+          "legendFormat": "GPU {{gpu_id}} Instantaneous (W)",
           "refId": "A"
         },
         {
@@ -389,8 +389,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_average_package_power{gpu_id=\"0\"}",
-          "legendFormat": "Average Package (W)",
+          "expr": "gpu_average_package_power{gpu_id=~\"${gpu:regex}\"}",
+          "legendFormat": "GPU {{gpu_id}} Average Package (W)",
           "refId": "B"
         },
         {
@@ -398,8 +398,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "node_hwmon_power_cap_watt{chip=\"0000:02:00_0_0000:03:00_0\",sensor=\"power1\"}",
-          "legendFormat": "Power Cap (W)",
+          "expr": "label_replace(node_hwmon_power_cap_watt{sensor=\"power1\"} and on(chip) node_hwmon_chip_names{chip_name=\"amdgpu\"}, \"pci\", \"$1\", \"chip\", \".*_0000:(.*)_0\")",
+          "legendFormat": "Power Cap PCI {{pci}} (W)",
           "refId": "C"
         }
       ],
@@ -411,7 +411,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Die, hotspot, and memory temperatures on the GPU.\n\nKey signals:\n• Edge °C — die surface, generally the lowest reading.\n• Junction/Hotspot °C — hottest point on the die; throttling begins ~110°C, emergency shutdown ~115°C; keep below 95°C under sustained load.\n• Memory °C — GDDR6 temp; above 95°C memory clocks reduce, directly hurting throughput since VRAM bandwidth is the primary inference bottleneck.",
+      "description": "Die, hotspot, and memory temperatures, one line per GPU.\n\nKey signals:\n• Edge °C — die surface, generally the lowest reading.\n• Junction/Hotspot °C — hottest point on the die; throttling begins ~110°C, emergency shutdown ~115°C; keep below 95°C under sustained load.\n• Memory °C — GDDR6 temp; above 95°C memory clocks reduce, directly hurting throughput since VRAM bandwidth is the primary inference bottleneck.\n• Two cards side by side: the upper card usually runs hotter since it breathes the lower card's exhaust.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -500,8 +500,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_edge_temperature{gpu_id=\"0\"}",
-          "legendFormat": "Edge °C",
+          "expr": "gpu_edge_temperature{gpu_id=~\"${gpu:regex}\"}",
+          "legendFormat": "GPU {{gpu_id}} Edge °C",
           "refId": "A"
         },
         {
@@ -509,8 +509,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_junction_temperature{gpu_id=\"0\"}",
-          "legendFormat": "Junction/Hotspot °C",
+          "expr": "gpu_junction_temperature{gpu_id=~\"${gpu:regex}\"}",
+          "legendFormat": "GPU {{gpu_id}} Junction/Hotspot °C",
           "refId": "B"
         },
         {
@@ -518,8 +518,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_memory_temperature{gpu_id=\"0\"}",
-          "legendFormat": "Memory °C",
+          "expr": "gpu_memory_temperature{gpu_id=~\"${gpu:regex}\"}",
+          "legendFormat": "GPU {{gpu_id}} Memory °C",
           "refId": "C"
         }
       ],
@@ -531,7 +531,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "PCIe traffic between the GPU and the rest of the system.\n\nKey signals:\n• PCIe Bandwidth (Mb/s) — the data highway for MoE expert weight fetches (-ot CPU-offload); expected to spike during inference. Pegged near the PCIe 4.0 x16 ceiling (~31 GB/s) means PCIe bandwidth, not compute, is your bottleneck — consider offloading fewer experts.",
+      "description": "PCIe traffic between each GPU and the rest of the system.\n\nKey signals:\n• GPU n PCIe Bandwidth (Mb/s) — the data highway for MoE expert weight fetches (-ot CPU-offload) and, with a model split across both cards, for activations passed between them; expected to spike during inference. Both R9700s link at PCIe 5.0 x16 (~63 GB/s); pegged near that ceiling means PCIe bandwidth, not compute, is the bottleneck — consider offloading fewer experts.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -616,8 +616,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pcie_bandwidth{gpu_id=\"0\"}",
-          "legendFormat": "PCIe Bandwidth (Mb/s)",
+          "expr": "pcie_bandwidth{gpu_id=~\"${gpu:regex}\"}",
+          "legendFormat": "GPU {{gpu_id}} PCIe Bandwidth (Mb/s)",
           "refId": "A"
         }
       ],
@@ -629,7 +629,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "System RAM the GPU has DMA-mapped (GTT) for CPU-offloaded MoE expert weights.\n\nKey signals:\n• GTT Used GB — expect 10-15GB when a model with -ot CPU-offloaded experts is loaded; near-zero while a model runs means experts landed in regular malloc RAM instead (still works, may be slightly slower).\n• GTT Free GB — headroom against the ~30GB total GTT pool.",
+      "description": "System RAM each GPU has DMA-mapped (GTT) for CPU-offloaded MoE expert weights.\n\nKey signals:\n• GPU n GTT Used GB — expect 10-15GB when a model with -ot CPU-offloaded experts is loaded; near-zero while a model runs means experts landed in regular malloc RAM instead (still works, may be slightly slower).\n• GPU n GTT Free GB — headroom against the GTT pool.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -714,8 +714,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_used_gtt{gpu_id=\"0\"} / 1024",
-          "legendFormat": "GTT Used GB (MoE experts in RAM)",
+          "expr": "gpu_used_gtt{gpu_id=~\"${gpu:regex}\"} / 1024",
+          "legendFormat": "GPU {{gpu_id}} GTT Used GB (MoE experts in RAM)",
           "refId": "A"
         },
         {
@@ -723,8 +723,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_free_gtt{gpu_id=\"0\"} / 1024",
-          "legendFormat": "GTT Free GB",
+          "expr": "gpu_free_gtt{gpu_id=~\"${gpu:regex}\"} / 1024",
+          "legendFormat": "GPU {{gpu_id}} GTT Free GB",
           "refId": "B"
         }
       ],
@@ -2832,7 +2832,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_ecc_uncorrect_total{gpu_id=\"0\"}",
+          "expr": "sum(gpu_ecc_uncorrect_total{gpu_id=~\"${gpu:regex}\"})",
           "legendFormat": "GPU ECC Uncorrectable Errors",
           "refId": "C"
         }
@@ -2948,6 +2948,36 @@
         "query": "prometheus",
         "refresh": 1,
         "type": "datasource"
+      },
+      {
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "definition": "query_result(gpu_total_vram > 4096)",
+        "includeAll": true,
+        "label": "GPU",
+        "multi": true,
+        "name": "gpu",
+        "options": [],
+        "query": {
+          "qryType": 3,
+          "query": "query_result(gpu_total_vram > 4096)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "/gpu_id=\"(\\d+)\"/",
+        "sort": 3,
+        "type": "query",
+        "description": "Discrete GPUs reported by amd-device-metrics (VRAM > 4 GB, so the CPU's integrated GPU is excluded)."
       }
     ]
   },
@@ -2957,7 +2987,7 @@
   },
   "timepicker": {},
   "timezone": "Europe/Amsterdam",
-  "title": "AI Stack — llama.cpp + RX 7900 XTX",
+  "title": "AI Stack — llama.cpp + AMD GPUs",
   "uid": "ai-stack-v1",
   "version": 50
 }
