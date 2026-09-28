@@ -30,7 +30,7 @@ ExecStart=/usr/bin/docker run --rm --name openwebui \
   --health-timeout 10s \
   --health-retries 3 \
   --health-start-period 30s \
-  ghcr.io/open-webui/open-webui:v0.11.0
+  ghcr.io/open-webui/open-webui:v0.11.4
 ExecStop=/usr/bin/docker stop openwebui
 Restart=on-failure
 RestartSec=30
