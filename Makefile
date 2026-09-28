@@ -65,6 +65,7 @@ help:
 menuconfig:
 	@set -euo pipefail
 	command -v menuconfig >/dev/null || { echo "Error: menuconfig not found. Install with: sudo pacman -S python-kconfiglib"; exit 1; }
+	"$(BASE_DIR)/scripts/gen-gpu-kconfig.sh" > "$(BASE_DIR)/Kconfig.gpus"
 	BASE_DIR="$(BASE_DIR)" KCONFIG_CONFIG="$(DOTCONFIG)" menuconfig "$(KCONFIG)"
 
 $(CONF_DEST): $(DOTCONFIG) Makefile
@@ -97,10 +98,19 @@ $(CONF_DEST): $(DOTCONFIG) Makefile
 
 	DATA_DIR="$$CONFIG_DATA_DIR"
 
+	# Checked GPUs are CONFIG_GPU_DEVICE_<UPPERCASE UUID HEX>=y (see scripts/gen-gpu-kconfig.sh).
+	GPUS=()
+	for var in $$(compgen -v CONFIG_GPU_DEVICE_); do
+		if [[ "$${!var}" == y ]]; then hex="$${var#CONFIG_GPU_DEVICE_}"; GPUS+=("GPU-$${hex,,}"); fi
+	done
+	IFS=',' read -ra EXTRA <<< "$${CONFIG_GPU_DEVICES_EXTRA:-}"
+	GPUS+=("$${EXTRA[@]}")
+	GPU_DEVICES=$$(IFS=,; echo "$${GPUS[*]}")
+	[[ -n "$$GPU_DEVICES" ]] || { echo "Error: no GPU selected — check one in 'make menuconfig' (llama menu)"; exit 1; }
+
 	# Sanity-check GPU UUIDs against rocminfo when it's available (indices are passed as-is).
 	if command -v rocminfo >/dev/null; then
 		KNOWN=$$(rocminfo 2>/dev/null | awk '/^ *Uuid:/ {print $$2}')
-		IFS=',' read -ra GPUS <<< "$$CONFIG_GPU_DEVICES"
 		for g in "$${GPUS[@]}"; do
 			[[ "$$g" == GPU-* ]] || continue
 			grep -qx "$$g" <<< "$$KNOWN" || echo "WARNING: GPU_DEVICES entry '$$g' not reported by rocminfo (known: $$(tr '\n' ' ' <<< "$$KNOWN"))"
@@ -116,7 +126,7 @@ $(CONF_DEST): $(DOTCONFIG) Makefile
 			echo "BASE_DIR=$(BASE_DIR)"
 			echo "DATA_DIR=$$DATA_DIR"
 			echo "MODELS_DIR=$$CONFIG_MODELS_DIR"
-			echo "GPU_DEVICES=$$CONFIG_GPU_DEVICES"
+			echo "GPU_DEVICES=$$GPU_DEVICES"
 			echo "CODE_DIR=$$CONFIG_CODE_DIR"
 			echo "BIND_HOST=$$CONFIG_BIND_HOST"
 			echo "DNS_SERVERS=$$CONFIG_DNS_SERVERS"
@@ -265,8 +275,10 @@ build-llama:
 	set -a; source "$(DOTCONFIG)"; set +a
 	SYSTEM_UID=$$(id -u "$$CONFIG_SYSTEM_USER")
 	SYSTEM_GID=$$(id -g "$$CONFIG_SYSTEM_USER")
+	[[ -n "$${CONFIG_LLAMA_GPU_TARGETS:-}" ]] || { echo "Error: LLAMA_GPU_TARGETS is empty — set it in 'make menuconfig' (llama menu)"; exit 1; }
 	docker build \
 		--build-arg LLAMA_VERSION="$$CONFIG_LLAMA_VERSION" \
+		--build-arg GPU_TARGETS="$$CONFIG_LLAMA_GPU_TARGETS" \
 		--build-arg AI_UID="$$SYSTEM_UID" \
 		--build-arg AI_GID="$$SYSTEM_GID" \
 		-t llama-cpp-rocm:latest \

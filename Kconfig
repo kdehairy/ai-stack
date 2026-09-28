@@ -40,17 +40,34 @@ config MODELS_DIR
 	help
 	  Bind-mounted read-only into both llama and llama-embedding.
 
-config GPU_DEVICES
-	string "GPU(s) exposed to llama and llama-embedding"
-	default "GPU-cd8b793d73692701"
+menu "GPU(s) exposed to llama and llama-embedding"
+
+comment "Detected by rocminfo when 'make menuconfig' starts"
+
+source "$(BASE_DIR)/Kconfig.gpus"
+
+config GPU_DEVICES_EXTRA
+	string "Extra GPU UUIDs (comma-separated, optional)"
+	default ""
 	help
-	  Comma-separated value passed as ROCR_VISIBLE_DEVICES to both
-	  containers. Use GPU UUIDs, not indices: a UUID is a property of the
-	  card and survives reboots, driver updates and slot changes, whereas
-	  the index is just KFD enumeration order. Find them with:
-	    rocminfo | grep -E 'Marketing Name|Uuid'
-	  (a card reporting "GPU-XX" has no UUID; the integrated GPU is one).
-	  'make config' warns if a listed UUID is not present in rocminfo.
+	  Appended to the GPUs checked above; the combined comma-separated
+	  list becomes ROCR_VISIBLE_DEVICES for both containers. Only needed
+	  when rocminfo isn't installed or doesn't list a card. Use UUIDs, not
+	  indices: a UUID is a property of the card and survives reboots,
+	  whereas an index is just KFD enumeration order. A card reporting
+	  "GPU-XX" has no UUID (the integrated GPU is one) and isn't listed.
+
+endmenu
+
+config LLAMA_GPU_TARGETS
+	string "GPU architecture(s) to compile llama.cpp for"
+	default "$(GPU_ARCHS)"
+	help
+	  Semicolon-separated gfx targets passed to cmake's GPU_TARGETS by
+	  'make build-llama' (e.g. gfx1100 for an RX 7900 XTX, gfx1201 for an
+	  R9700 / RX 9070). Defaults to every architecture rocminfo reports
+	  for the GPUs listed above. A GPU whose architecture isn't compiled
+	  in fails with "ROCm error: invalid device function".
 
 config LLAMA_PORT
 	int "llama.cpp inference server host port"

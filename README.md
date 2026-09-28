@@ -31,7 +31,9 @@ For how these pieces talk to each other, the full port table, and troubleshootin
 
 These are baked into the repo, not configurable:
 
-- **AMD RX 7900 XTX** (`gfx1100`) — the llama image is built specifically for this GPU target
+- **AMD GPU(s) supported by ROCm 7.0** — the llama image is compiled only for the `gfx`
+  architectures in the `LLAMA_GPU_TARGETS` Kconfig option (auto-detected from `rocminfo` by
+  `make menuconfig`); after a GPU swap, rerun `make menuconfig` and `make build-llama`
 - **Arch Linux host** — `nginx`/`syslog-ng` are pacman packages; the Makefile deploys into their
   Arch conventions (`/etc/nginx/servers/`, `/etc/logrotate.d/`, `syslog-ng@default.service`)
 - **nginx and syslog-ng run bare-metal on the host**, not in Docker — this repo configures them,
@@ -43,7 +45,8 @@ These are baked into the repo, not configurable:
 ### Prerequisites
 
 - Docker
-- AMD ROCm 6.4+ at `/opt/rocm`; `rocminfo` recommended (used to validate `GPU_DEVICES`, below)
+- AMD ROCm 7.0+ at `/opt/rocm`; `rocminfo` recommended (`make menuconfig` uses it to list
+  GPUs as checkboxes; without it, type UUIDs into the manual field)
 - `python-kconfiglib` (`make menuconfig`)
 - nginx and syslog-ng installed (not yet configured)
 - Model files present under `/data/models/llamacpp` (see `services/llama/models.ini` for the
@@ -68,8 +71,8 @@ service, `build-<name>` for a single image, and `stop-all`/`restart-all`/`uninst
 
 ### Helpful commands
 
-Find a GPU's UUID for the `GPU_DEVICES` Kconfig option (llama menu — a UUID is stable across
-reboots, unlike a device index):
+List GPU UUIDs (what `make menuconfig` offers as checkboxes in the llama menu — a UUID is stable
+across reboots, unlike a device index):
 
 ```bash
 rocminfo | grep -E 'Marketing Name|Uuid'

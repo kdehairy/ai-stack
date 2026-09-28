@@ -1,5 +1,5 @@
 # --- Stage 1: Build -----------------------------------------------------------
-FROM rocm/dev-ubuntu-24.04:6.4 AS builder
+FROM rocm/dev-ubuntu-24.04:7.0 AS builder
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -13,26 +13,27 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 ARG LLAMA_VERSION=master
+ARG GPU_TARGETS
 RUN git clone --depth=1 --branch ${LLAMA_VERSION} \
     https://github.com/ggml-org/llama.cpp /build/llama.cpp 2>/dev/null || \
     git clone --depth=1 https://github.com/ggml-org/llama.cpp /build/llama.cpp
 
 WORKDIR /build/llama.cpp
 
-RUN cmake -B build \
+RUN test -n "${GPU_TARGETS}" || { echo "GPU_TARGETS build arg is required"; exit 1; } \
+    && cmake -B build \
     -DGGML_HIP=ON \
-    -DAMDGPU_TARGETS=gfx1100 \
+    -DGPU_TARGETS="${GPU_TARGETS}" \
 		-DGGML_HIP_ROCWMMA_FATTN=ON \
     -DGGML_CUDA_FORCE_MMQ=ON \
     -DBUILD_SHARED_LIBS=OFF \
-    -DLLAMA_CURL=ON \
 		-DCMAKE_POSITION_INDEPENDENT_CODE=ON \
     -DCMAKE_BUILD_TYPE=Release \
     && cmake --build build --config Release -j$(nproc) \
              --target llama-server llama-cli llama-bench
 
 # --- Stage 2: Runtime ---------------------------------------------------------
-FROM rocm/dev-ubuntu-24.04:6.4 AS runtime
+FROM rocm/dev-ubuntu-24.04:7.0 AS runtime
 
 ARG AI_UID=1100
 ARG AI_GID=1100
