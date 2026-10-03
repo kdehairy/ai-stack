@@ -1,7 +1,7 @@
 # AI Stack
 
 Self-hosted AI infrastructure for a single GPU box: local LLM inference, a chat UI, private web
-search, vector/code search, and GPU observability — reachable from the LAN over plain HTTP domain
+search, MCP tools, and GPU observability — reachable from the LAN over plain HTTP domain
 names, each service its own systemd-managed Docker container.
 
 ## Overview
@@ -15,12 +15,10 @@ What it sets up:
 
 | Service | Purpose | Domain (default) |
 | --- | --- | --- |
-| llama | GLM-4.7-Flash / Qwen3-VL inference, GPU-accelerated | `model.cloud.home` |
-| llama-embedding | Qwen3-Embedding-4B for vector/code search | `embedding.cloud.home` |
+| llama | Qwen3.8-Flash-Next inference (served as `Baloza-v0.3`), GPU-accelerated | `model.cloud.home` |
 | openwebui | Chat UI (talks to llama + searxng) | `darwish.cloud.home` |
 | searxng | Private metasearch engine | `websearch.cloud.home` |
 | one-search-mcp | Web-search MCP tool, backed by searxng | `onesearch.cloud.home` |
-| qdrant + qdrant-mcp | Vector DB + semantic code/git search MCP server | *(internal only)* |
 | grafana-mcp | Grafana/Prometheus/Loki/Incident MCP server | `grafana-mcp.cloud.home` |
 | node-exporter, amd-device-metrics | Host + GPU metrics for Prometheus/Grafana | *(internal only)* |
 
@@ -58,7 +56,7 @@ These are baked into the repo, not configurable:
 make menuconfig    # as your normal user: curses menu -> .config
 sudo make config   # .config -> /etc/ai-stack/ai-stack.conf; creates data dirs; adds
                     # SYSTEM_USER to the docker/video/render groups
-make build          # builds the 3 locally-built images (llama, qdrant-mcp, one-search-mcp)
+make build          # builds the 2 locally-built images (llama, one-search-mcp)
 sudo make install  # creates the ai-stack Docker network; renders and installs a systemd
                     # unit per service (does not enable/start them)
 sudo make install-nginx install-syslog-ng install-logrotate  # host-level configs
@@ -82,11 +80,8 @@ Check service health (bypasses nginx):
 
 ```bash
 curl http://127.0.0.1:8082/health      # llama inference
-curl http://127.0.0.1:8081/health      # embedding vectors
 curl http://127.0.0.1:8888/healthz     # searxng search
 curl http://127.0.0.1:3000/health      # openwebui chat UI
-curl http://127.0.0.1:6333/collections # qdrant vector DB
-curl http://127.0.0.1:3001/mcp         # qdrant-mcp server
 curl http://127.0.0.1:3002/status      # one-search-mcp
 curl http://127.0.0.1:3003/mcp         # grafana-mcp (streamable-http; no dedicated health path)
 ```

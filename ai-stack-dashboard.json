@@ -961,7 +961,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Decode-phase tokens/sec — what you experience as typing speed.\n\nKey signals:\n• {{model}} tokens/sec — per active router model (Baloza-v0.3, ninni-v0.1). Typical range 15-40 tok/s; a sustained drop signals GPU thermal throttling, VRAM pressure, PCIe saturation from MoE fetches, or RAM exhaustion causing swap.",
+      "description": "Decode-phase tokens/sec — what you experience as typing speed.\n\nKey signals:\n• {{model}} tokens/sec — per router model (Baloza-v0.3, the only preset). Typical range 15-40 tok/s; a sustained drop signals GPU thermal throttling, VRAM pressure, PCIe saturation from MoE fetches, or RAM exhaustion causing swap.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2845,7 +2845,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Which router-mode model (of models.ini) is currently resident and serving.\n\nKey signals:\n• Green tile = that model is currently loaded (up=1).\n• Red tile = not loaded (up=0) — expected for the inactive model under --models-max 1, not an error by itself.\n• If both tiles are red, the router has no model loaded at all.",
+      "description": "Which router-mode model (of models.ini) is currently resident and serving.\n\nKey signals:\n• Green tile = that model is currently loaded (up=1).\n• Red tile = not loaded (up=0) — normal before the first request after a restart (the router loads on demand), otherwise the model was unloaded or failed to load.",
       "fieldConfig": {
         "defaults": {
           "color": {
