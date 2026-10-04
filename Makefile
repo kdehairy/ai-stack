@@ -18,15 +18,15 @@ NETWORK_NAME                 := ai-stack
 KCONFIG                      := $(BASE_DIR)/Kconfig
 DOTCONFIG                    := $(BASE_DIR)/.config
 
-SERVICES := llama llama-embedding searxng openwebui qdrant qdrant-mcp one-search-mcp \
+SERVICES := llama searxng openwebui one-search-mcp \
             node-exporter amd-device-metrics grafana-mcp
 UNIT_TARGETS      := $(addprefix $(SYSTEMD_DIR)/,$(addsuffix .service,$(SERVICES)))
 INSTALL_TARGETS   := $(addprefix install-,$(SERVICES))
 UNINSTALL_TARGETS := $(addprefix uninstall-,$(SERVICES))
-BUILD_IMAGES      := llama qdrant-mcp one-search-mcp
+BUILD_IMAGES      := llama one-search-mcp
 BUILD_TARGETS     := $(addprefix build-,$(BUILD_IMAGES))
 INSTALL_BUILD_TARGETS   := $(addprefix install-,$(BUILD_IMAGES))
-INSTALL_NOBUILD_TARGETS := $(filter-out $(INSTALL_BUILD_TARGETS) install-llama-embedding,$(INSTALL_TARGETS))
+INSTALL_NOBUILD_TARGETS := $(filter-out $(INSTALL_BUILD_TARGETS),$(INSTALL_TARGETS))
 
 .PHONY: help menuconfig config service install $(INSTALL_TARGETS) \
         uninstall $(UNINSTALL_TARGETS) install-nginx uninstall-nginx \
@@ -40,7 +40,7 @@ help:
 	echo "  menuconfig  Choose parameters via a curses menu, write $(DOTCONFIG) (run as your normal user)"
 	echo "  config      Translate $(DOTCONFIG) into $(CONF_DEST), create data dirs (run as root)"
 	echo "  network     Create the external ai-stack Docker network"
-	echo "  build       Build the three locally-built images (llama, qdrant-mcp, one-search-mcp)"
+	echo "  build       Build the two locally-built images (llama, one-search-mcp)"
 	echo "  build-<name>  Build just one of them"
 	echo "  service     Render and install all standalone systemd unit files from $(CONF_DEST)"
 	echo "  install     Run network then service"
@@ -89,8 +89,8 @@ $(CONF_DEST): $(DOTCONFIG) Makefile
 	[[ -n "$$RENDER_GID" ]] || { echo "Error: 'render' group not found"; exit 1; }
 	getent group docker >/dev/null || { echo "Error: 'docker' group not found"; exit 1; }
 
-	# Every unit invokes docker as $SYSTEM_USER (systemd User=/Group=); llama/llama-embedding also
-	# need video/render on the host to access /dev/kfd,/dev/dri themselves (the containers get
+	# Every unit invokes docker as $SYSTEM_USER (systemd User=/Group=); llama also
+	# needs video/render on the host to access /dev/kfd,/dev/dri themselves (the containers get
 	# GPU access via --group-add instead, using the numeric GIDs captured above).
 	usermod -aG docker,video,render "$$SYSTEM_USER"
 	echo "Added '$$SYSTEM_USER' to docker, video, render (a running session for that user won't"
@@ -127,7 +127,6 @@ $(CONF_DEST): $(DOTCONFIG) Makefile
 			echo "DATA_DIR=$$DATA_DIR"
 			echo "MODELS_DIR=$$CONFIG_MODELS_DIR"
 			echo "GPU_DEVICES=$$GPU_DEVICES"
-			echo "CODE_DIR=$$CONFIG_CODE_DIR"
 			echo "BIND_HOST=$$CONFIG_BIND_HOST"
 			echo "DNS_SERVERS=$$CONFIG_DNS_SERVERS"
 			echo "SEARXNG_SECRET=$$CONFIG_SEARXNG_SECRET"
@@ -137,14 +136,10 @@ $(CONF_DEST): $(DOTCONFIG) Makefile
 			echo "LLAMA_VERSION=$$CONFIG_LLAMA_VERSION"
 			echo "LLAMA_PORT=$$CONFIG_LLAMA_PORT"
 			echo "LLAMA_DOMAIN=$$CONFIG_LLAMA_DOMAIN"
-			echo "EMBEDDING_PORT=$$CONFIG_EMBEDDING_PORT"
-			echo "EMBEDDING_DOMAIN=$$CONFIG_EMBEDDING_DOMAIN"
 			echo "SEARXNG_PORT=$$CONFIG_SEARXNG_PORT"
 			echo "SEARXNG_DOMAIN=$$CONFIG_SEARXNG_DOMAIN"
 			echo "OPENWEBUI_PORT=$$CONFIG_OPENWEBUI_PORT"
 			echo "OPENWEBUI_DOMAIN=$$CONFIG_OPENWEBUI_DOMAIN"
-			echo "QDRANT_PORT=$$CONFIG_QDRANT_PORT"
-			echo "QDRANT_MCP_PORT=$$CONFIG_QDRANT_MCP_PORT"
 			echo "ONESEARCH_MCP_PORT=$$CONFIG_ONESEARCH_MCP_PORT"
 			echo "ONESEARCH_MCP_DOMAIN=$$CONFIG_ONESEARCH_MCP_DOMAIN"
 			echo "GRAFANA_MCP_PORT=$$CONFIG_GRAFANA_MCP_PORT"
@@ -154,7 +149,7 @@ $(CONF_DEST): $(DOTCONFIG) Makefile
 	chown "$$SYSTEM_UID:$$SYSTEM_GID" "$(CONF_DEST)"
 	echo "Config written: $(CONF_DEST)"
 
-	mkdir -p "$$DATA_DIR/openwebui" "$$DATA_DIR/qdrant"
+	mkdir -p "$$DATA_DIR/openwebui"
 	chown -R "$$SYSTEM_UID:$$SYSTEM_GID" "$$DATA_DIR"
 	echo "Directories created and ownership set"
 
@@ -185,9 +180,6 @@ install: network build $(UNIT_TARGETS)
 
 $(INSTALL_BUILD_TARGETS): install-%: network build-% $(SYSTEMD_DIR)/%.service
 
-# llama-embedding has no build-llama-embedding target of its own — it shares llama's image.
-install-llama-embedding: network build-llama $(SYSTEMD_DIR)/llama-embedding.service
-
 $(INSTALL_NOBUILD_TARGETS): install-%: network $(SYSTEMD_DIR)/%.service
 
 install-nginx:
@@ -201,7 +193,7 @@ install-nginx:
 	# Restrict envsubst to just the domain vars below — an unrestricted pass would also try to
 	# substitute nginx's OWN $host/$remote_addr/$scheme/... (same $NAME syntax) with nothing.
 	for conf in "$(BASE_DIR)/nginx/sites-available/"*; do
-		envsubst '$$LLAMA_DOMAIN,$$EMBEDDING_DOMAIN,$$SEARXNG_DOMAIN,$$OPENWEBUI_DOMAIN,$$ONESEARCH_MCP_DOMAIN,$$GRAFANA_MCP_DOMAIN' \
+		envsubst '$$LLAMA_DOMAIN,$$SEARXNG_DOMAIN,$$OPENWEBUI_DOMAIN,$$ONESEARCH_MCP_DOMAIN,$$GRAFANA_MCP_DOMAIN' \
 			< "$$conf" > "$(PREFIX)/etc/nginx/servers/$$(basename $$conf)"
 		echo "Rendered: $(PREFIX)/etc/nginx/servers/$$(basename $$conf)"
 	done
@@ -283,12 +275,7 @@ build-llama:
 		--build-arg AI_GID="$$SYSTEM_GID" \
 		-t llama-cpp-rocm:latest \
 		"$(BASE_DIR)/services/llama"
-	echo "Built: llama-cpp-rocm:latest (shared by llama and llama-embedding)"
-
-build-qdrant-mcp:
-	@set -euo pipefail
-	docker build -t qdrant-mcp:latest "$(BASE_DIR)/services/qdrant-mcp"
-	echo "Built: qdrant-mcp:latest"
+	echo "Built: llama-cpp-rocm:latest"
 
 build-one-search-mcp:
 	@set -euo pipefail

@@ -6,8 +6,8 @@ config DATA_DIR
 	string "Data directory for persistent volumes"
 	default "/data/ai-stack"
 	help
-	  Directory where persistent container data (OpenWebUI data, Qdrant
-	  storage, SearXNG config) is stored.
+	  Directory where persistent container data (OpenWebUI data) is
+	  stored.
 
 config SYSTEM_USER
 	string "System username for ai-stack services"
@@ -29,18 +29,18 @@ menu "llama"
 
 config LLAMA_VERSION
 	string "llama.cpp git tag/branch to build"
-	default "b9524"
+	default "b11375"
 	help
-	  Also used to build the llama-embedding image — both services share
-	  the same llama-cpp-rocm:latest build.
+	  Git tag/branch the llama-cpp-rocm:latest image is built from.
+	  Qwen3.8-Flash-Next (qwen4exp) needs b11375 or later.
 
 config MODELS_DIR
 	string "GGUF model files directory"
 	default "/data/models/llamacpp"
 	help
-	  Bind-mounted read-only into both llama and llama-embedding.
+	  Bind-mounted read-only into llama.
 
-menu "GPU(s) exposed to llama and llama-embedding"
+menu "GPU(s) exposed to llama"
 
 comment "Detected by rocminfo when 'make menuconfig' starts"
 
@@ -51,7 +51,7 @@ config GPU_DEVICES_EXTRA
 	default ""
 	help
 	  Appended to the GPUs checked above; the combined comma-separated
-	  list becomes ROCR_VISIBLE_DEVICES for both containers. Only needed
+	  list becomes ROCR_VISIBLE_DEVICES for the llama container. Only needed
 	  when rocminfo isn't installed or doesn't list a card. Use UUIDs, not
 	  indices: a UUID is a property of the card and survives reboots,
 	  whereas an index is just KFD enumeration order. A card reporting
@@ -77,22 +77,6 @@ config LLAMA_PORT
 config LLAMA_DOMAIN
 	string "Nginx server_name for llama"
 	default "model.cloud.home"
-
-endmenu
-
-menu "llama-embedding"
-
-config EMBEDDING_PORT
-	int "llama.cpp embedding server host port"
-	default 8081
-	range 1 65535
-	help
-	  Shares MODELS_DIR and LLAMA_VERSION from the llama menu (same
-	  built image).
-
-config EMBEDDING_DOMAIN
-	string "Nginx server_name for llama-embedding"
-	default "embedding.cloud.home"
 
 endmenu
 
@@ -131,31 +115,6 @@ config OPENWEBUI_DOMAIN
 	help
 	  Also used as OpenWebUI's own CORS_ALLOW_ORIGIN, so the two never
 	  drift out of sync.
-
-endmenu
-
-menu "qdrant"
-
-config QDRANT_PORT
-	int "Qdrant host port"
-	default 6333
-	range 1 65535
-
-endmenu
-
-menu "qdrant-mcp"
-
-config QDRANT_MCP_PORT
-	int "qdrant-mcp host port"
-	default 3001
-	range 1 65535
-
-config CODE_DIR
-	string "Codebase directory for qdrant-mcp indexing"
-	default "/home/kdehairy/git_tree"
-	help
-	  Bind-mounted read-only into qdrant-mcp for semantic code search and
-	  git history analysis.
 
 endmenu
 

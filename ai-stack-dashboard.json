@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "AI Stack monitoring dashboard for llama.cpp inference server, AMD RX 7900 XTX, and host system. Covers GPU VRAM/compute/thermals, LLM token throughput, MoE RAM offloading, CPU, storage, and system health.",
+  "description": "AI Stack monitoring dashboard for the llama.cpp inference server, its AMD GPUs (2× Radeon AI PRO R9700; pick cards with the GPU variable), and the host system. The model is Qwen3.8-Flash-Next UD-Q4_K_XL, served as the single router preset Baloza-v0.3: layer-split across both GPUs, --fit keeps ~20 layers' MoE experts in host RAM (mmap'd), and the 27 GB n-gram table is read lazily from NVMe. Covers GPU VRAM/compute/thermals, LLM speed and cache reuse, MoE RAM offloading, CPU, storage, and system health.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -40,7 +40,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "VRAM allocated vs. free on the RX 7900 XTX's 24GB pool.\n\nKey signals:\n• Used GB — climbing toward 23-24GB risks OOM (orange/red thresholds at 22/23.5GB).\n• Free GB — should track inversely with Used; a sudden jump up means a model crashed or was unloaded.\n• Total GB (reference) — flat at 24GB, just a scale anchor.",
+      "description": "VRAM allocated vs. free on this GPU (32 GB Radeon AI PRO R9700).\n\nKey signals:\n• Used GB — ~31 GB is the normal operating point: llama.cpp's --fit fills each card with layers/experts until only ~1 GiB is left (GPU 0 also holds the desktop and the vision mmproj, so it runs closest to the edge).\n• Free GB — a sudden jump up means the model crashed or was unloaded.\n• Total GB (reference) — flat at ~32 GB, just a scale anchor.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -90,11 +90,11 @@
               },
               {
                 "color": "orange",
-                "value": 22
+                "value": 30
               },
               {
                 "color": "red",
-                "value": 23.5
+                "value": 31.5
               }
             ]
           },
@@ -104,7 +104,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 4,
         "x": 0,
         "y": 1
       },
@@ -129,8 +129,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
+          "editorMode": "code",
           "expr": "gpu_used_vram{gpu_id=\"0\"} / 1024",
-          "legendFormat": "Used GB",
+          "legendFormat": "GPU {{gpu_id}} Used GB",
+          "range": true,
           "refId": "A"
         },
         {
@@ -138,8 +140,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
+          "editorMode": "code",
           "expr": "gpu_free_vram{gpu_id=\"0\"} / 1024",
-          "legendFormat": "Free GB",
+          "legendFormat": "GPU {{gpu_id}} Free GB",
+          "range": true,
           "refId": "B"
         },
         {
@@ -147,8 +151,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
+          "editorMode": "code",
           "expr": "gpu_total_vram{gpu_id=\"0\"} / 1024",
-          "legendFormat": "Total GB (reference)",
+          "legendFormat": "GPU {{gpu_id}} Total GB (reference)",
+          "range": true,
           "refId": "C"
         }
       ],
@@ -160,7 +166,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Shader/compute vs. memory-controller utilization on the GPU.\n\nKey signals:\n• Compute (gfx) % — high value means the GPU core is compute-bound (matrix multiply saturated).\n• Memory Controller (umc) % — high value means VRAM bandwidth-bound; usually the dominant bottleneck for MoE models since experts stream from memory.\n• gfx high + umc low = compute-bound; umc high = bandwidth-bound (expected for large MoE models).",
+      "description": "Shader/compute vs. memory-controller utilization, one line per GPU.\n\nKey signals:\n• Compute (gfx) % — high value means the GPU core is compute-bound (matrix multiply saturated).\n• Memory Controller (umc) % — high value means VRAM bandwidth-bound; usually the dominant bottleneck for MoE models since experts stream from memory.\n• gfx high + umc low = compute-bound; umc high = bandwidth-bound (expected for large MoE models).\n• With a model split across both cards (layer split), the GPUs take turns being busy rather than peaking together.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -222,8 +228,8 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 8,
+        "w": 4,
+        "x": 4,
         "y": 1
       },
       "id": 2,
@@ -247,8 +253,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
+          "editorMode": "code",
           "expr": "gpu_gfx_activity{gpu_id=\"0\"}",
-          "legendFormat": "Compute (gfx) %",
+          "legendFormat": "GPU {{gpu_id}} Compute (gfx) %",
+          "range": true,
           "refId": "A"
         },
         {
@@ -256,8 +264,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
+          "editorMode": "code",
           "expr": "gpu_umc_activity{gpu_id=\"0\"}",
-          "legendFormat": "Memory Controller %",
+          "legendFormat": "GPU {{gpu_id}} Memory Controller %",
+          "range": true,
           "refId": "B"
         }
       ],
@@ -269,7 +279,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "GPU power draw against its configured TDP cap.\n\nKey signals:\n• Instantaneous (W) — spiky moment-to-moment draw; idle ~16W, full inference load 180-280W.\n• Average Package (W) — smoothed reading, easier to read the trend.\n• Power Cap (W) — the ceiling (default 315W, hw max 350W); if Instantaneous rides the cap continuously, the GPU is power-limited and raising the cap could raise throughput.",
+      "description": "Power draw per GPU against its configured cap.\n\nKey signals:\n• GPU n Instantaneous (W) — spiky moment-to-moment draw.\n• GPU n Average Package (W) — smoothed reading, easier to read the trend.\n• Power Cap PCI xx:xx (W) — each card's ceiling (R9700: 300W board power; check with rocm-smi); if Instantaneous rides the cap continuously, that GPU is power-limited.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -328,8 +338,8 @@
         "overrides": [
           {
             "matcher": {
-              "id": "byName",
-              "options": "Power Cap (W)"
+              "id": "byRegexp",
+              "options": "^Power Cap .*"
             },
             "properties": [
               {
@@ -355,8 +365,8 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 16,
+        "w": 4,
+        "x": 8,
         "y": 1
       },
       "id": 3,
@@ -380,8 +390,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
+          "editorMode": "code",
           "expr": "gpu_power_usage{gpu_id=\"0\"}",
-          "legendFormat": "Instantaneous (W)",
+          "legendFormat": "GPU {{gpu_id}} Instantaneous (W)",
+          "range": true,
           "refId": "A"
         },
         {
@@ -389,8 +401,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
+          "editorMode": "code",
           "expr": "gpu_average_package_power{gpu_id=\"0\"}",
-          "legendFormat": "Average Package (W)",
+          "legendFormat": "GPU {{gpu_id}} Average Package (W)",
+          "range": true,
           "refId": "B"
         },
         {
@@ -398,8 +412,8 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "node_hwmon_power_cap_watt{chip=\"0000:02:00_0_0000:03:00_0\",sensor=\"power1\"}",
-          "legendFormat": "Power Cap (W)",
+          "expr": "label_replace(node_hwmon_power_cap_watt{sensor=\"power1\"} and on(chip) node_hwmon_chip_names{chip_name=\"amdgpu\"}, \"pci\", \"$1\", \"chip\", \".*_0000:(.*)_0\")",
+          "legendFormat": "Power Cap PCI {{pci}} (W)",
           "refId": "C"
         }
       ],
@@ -411,7 +425,218 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Die, hotspot, and memory temperatures on the GPU.\n\nKey signals:\n• Edge °C — die surface, generally the lowest reading.\n• Junction/Hotspot °C — hottest point on the die; throttling begins ~110°C, emergency shutdown ~115°C; keep below 95°C under sustained load.\n• Memory °C — GDDR6 temp; above 95°C memory clocks reduce, directly hurting throughput since VRAM bandwidth is the primary inference bottleneck.",
+      "description": "System RAM this GPU has DMA-mapped (GTT).\n\nKey signals:\n• GTT Used GB — near zero is expected with this setup: the CPU-side MoE experts are memory-mapped straight from the GGUF files (CPU_Mapped) and computed on the CPU, so they show up as page cache / Mapped in the RAM row, not as GTT.\n• A large GTT footprint would mean something switched to pinned host buffers (e.g. --load-mode none or --no-mmap).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "gbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "gpu_used_gtt{gpu_id=\"0\"} / 1024",
+          "legendFormat": "GPU {{gpu_id}} GTT Used GB (MoE experts in RAM)",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "gpu_free_gtt{gpu_id=\"0\"} / 1024",
+          "legendFormat": "GPU {{gpu_id}} GTT Free GB",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "GTT Memory (System RAM Mapped for GPU)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "PCIe traffic between this GPU and the rest of the system.\n\nKey signals:\n• PCIe Bandwidth — the model is layer-split across both cards, so activations cross PCIe between GPU 0 and GPU 1 every token; during prompt processing, expert weights held in host RAM may also be copied to the GPU per ubatch, which shows up as bursts. Both R9700s link at PCIe 5.0 x16 (~63 GB/s). Expert placement is decided by --fit, not by hand.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "Mbits/s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "pcie_bandwidth{gpu_id=\"0\"}",
+          "legendFormat": "GPU {{gpu_id}} PCIe Bandwidth (Mb/s)",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "PCIe Bandwidth (MoE Expert Transfer)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Die, hotspot, and memory temperatures, one line per GPU.\n\nKey signals:\n• Edge °C — die surface, generally the lowest reading.\n• Junction/Hotspot °C — hottest point on the die; throttling begins ~110°C, emergency shutdown ~115°C; keep below 95°C under sustained load.\n• Memory °C — GDDR6 temp; above 95°C memory clocks reduce, directly hurting throughput since VRAM bandwidth is the primary inference bottleneck.\n• Two cards side by side: the upper card usually runs hotter since it breathes the lower card's exhaust.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -475,9 +700,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 9
+        "w": 4,
+        "x": 20,
+        "y": 1
       },
       "id": 4,
       "options": {
@@ -500,8 +725,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
+          "editorMode": "code",
           "expr": "gpu_edge_temperature{gpu_id=\"0\"}",
-          "legendFormat": "Edge °C",
+          "legendFormat": "GPU {{gpu_id}} Edge °C",
+          "range": true,
           "refId": "A"
         },
         {
@@ -509,8 +736,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
+          "editorMode": "code",
           "expr": "gpu_junction_temperature{gpu_id=\"0\"}",
-          "legendFormat": "Junction/Hotspot °C",
+          "legendFormat": "GPU {{gpu_id}} Junction/Hotspot °C",
+          "range": true,
           "refId": "B"
         },
         {
@@ -518,8 +747,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
+          "editorMode": "code",
           "expr": "gpu_memory_temperature{gpu_id=\"0\"}",
-          "legendFormat": "Memory °C",
+          "legendFormat": "GPU {{gpu_id}} Memory °C",
+          "range": true,
           "refId": "C"
         }
       ],
@@ -531,7 +762,246 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "PCIe traffic between the GPU and the rest of the system.\n\nKey signals:\n• PCIe Bandwidth (Mb/s) — the data highway for MoE expert weight fetches (-ot CPU-offload); expected to spike during inference. Pegged near the PCIe 4.0 x16 ceiling (~31 GB/s) means PCIe bandwidth, not compute, is your bottleneck — consider offloading fewer experts.",
+      "description": "VRAM allocated vs. free on this GPU (32 GB Radeon AI PRO R9700).\n\nKey signals:\n• Used GB — ~31 GB is the normal operating point: llama.cpp's --fit fills each card with layers/experts until only ~1 GiB is left (GPU 0 also holds the desktop and the vision mmproj, so it runs closest to the edge).\n• Free GB — a sudden jump up means the model crashed or was unloaded.\n• Total GB (reference) — flat at ~32 GB, just a scale anchor.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 30
+              },
+              {
+                "color": "red",
+                "value": 31.5
+              }
+            ]
+          },
+          "unit": "gbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 4,
+        "x": 0,
+        "y": 9
+      },
+      "id": 202,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "gpu_used_vram{gpu_id=\"1\"} / 1024",
+          "legendFormat": "GPU {{gpu_id}} Used GB",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "gpu_free_vram{gpu_id=\"1\"} / 1024",
+          "legendFormat": "GPU {{gpu_id}} Free GB",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "gpu_total_vram{gpu_id=\"1\"} / 1024",
+          "legendFormat": "GPU {{gpu_id}} Total GB (reference)",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "VRAM Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Shader/compute vs. memory-controller utilization, one line per GPU.\n\nKey signals:\n• Compute (gfx) % — high value means the GPU core is compute-bound (matrix multiply saturated).\n• Memory Controller (umc) % — high value means VRAM bandwidth-bound; usually the dominant bottleneck for MoE models since experts stream from memory.\n• gfx high + umc low = compute-bound; umc high = bandwidth-bound (expected for large MoE models).\n• With a model split across both cards (layer split), the GPUs take turns being busy rather than peaking together.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 4,
+        "x": 4,
+        "y": 9
+      },
+      "id": 203,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "gpu_gfx_activity{gpu_id=\"1\"}",
+          "legendFormat": "GPU {{gpu_id}} Compute (gfx) %",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "gpu_umc_activity{gpu_id=\"1\"}",
+          "legendFormat": "GPU {{gpu_id}} Memory Controller %",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "GPU Compute & Memory Activity",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Power draw per GPU against its configured cap.\n\nKey signals:\n• GPU n Instantaneous (W) — spiky moment-to-moment draw.\n• GPU n Average Package (W) — smoothed reading, easier to read the trend.\n• Power Cap PCI xx:xx (W) — each card's ceiling (R9700: 300W board power; check with rocm-smi); if Instantaneous rides the cap continuously, that GPU is power-limited.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -585,17 +1055,43 @@
               }
             ]
           },
-          "unit": "Mbits/s"
+          "unit": "watt"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^Power Cap .*"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 4,
         "x": 8,
         "y": 9
       },
-      "id": 5,
+      "id": 204,
       "options": {
         "legend": {
           "calcs": [],
@@ -616,12 +1112,34 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pcie_bandwidth{gpu_id=\"0\"}",
-          "legendFormat": "PCIe Bandwidth (Mb/s)",
+          "editorMode": "code",
+          "expr": "gpu_power_usage{gpu_id=\"1\"}",
+          "legendFormat": "GPU {{gpu_id}} Instantaneous (W)",
+          "range": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "gpu_average_package_power{gpu_id=\"1\"}",
+          "legendFormat": "GPU {{gpu_id}} Average Package (W)",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "label_replace(node_hwmon_power_cap_watt{sensor=\"power1\"} and on(chip) node_hwmon_chip_names{chip_name=\"amdgpu\"}, \"pci\", \"$1\", \"chip\", \".*_0000:(.*)_0\")",
+          "legendFormat": "Power Cap PCI {{pci}} (W)",
+          "refId": "C"
         }
       ],
-      "title": "PCIe Bandwidth (MoE Expert Transfer)",
+      "title": "GPU Power",
       "type": "timeseries"
     },
     {
@@ -629,7 +1147,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "System RAM the GPU has DMA-mapped (GTT) for CPU-offloaded MoE expert weights.\n\nKey signals:\n• GTT Used GB — expect 10-15GB when a model with -ot CPU-offloaded experts is loaded; near-zero while a model runs means experts landed in regular malloc RAM instead (still works, may be slightly slower).\n• GTT Free GB — headroom against the ~30GB total GTT pool.",
+      "description": "System RAM this GPU has DMA-mapped (GTT).\n\nKey signals:\n• GTT Used GB — near zero is expected with this setup: the CPU-side MoE experts are memory-mapped straight from the GGUF files (CPU_Mapped) and computed on the CPU, so they show up as page cache / Mapped in the RAM row, not as GTT.\n• A large GTT footprint would mean something switched to pinned host buffers (e.g. --load-mode none or --no-mmap).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -689,11 +1207,11 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 16,
+        "w": 4,
+        "x": 12,
         "y": 9
       },
-      "id": 6,
+      "id": 205,
       "options": {
         "legend": {
           "calcs": [],
@@ -714,8 +1232,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_used_gtt{gpu_id=\"0\"} / 1024",
-          "legendFormat": "GTT Used GB (MoE experts in RAM)",
+          "editorMode": "code",
+          "expr": "gpu_used_gtt{gpu_id=\"1\"} / 1024",
+          "legendFormat": "GPU {{gpu_id}} GTT Used GB (MoE experts in RAM)",
+          "range": true,
           "refId": "A"
         },
         {
@@ -723,12 +1243,240 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_free_gtt{gpu_id=\"0\"} / 1024",
-          "legendFormat": "GTT Free GB",
+          "editorMode": "code",
+          "expr": "gpu_free_gtt{gpu_id=\"1\"} / 1024",
+          "legendFormat": "GPU {{gpu_id}} GTT Free GB",
+          "range": true,
           "refId": "B"
         }
       ],
       "title": "GTT Memory (System RAM Mapped for GPU)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "PCIe traffic between this GPU and the rest of the system.\n\nKey signals:\n• PCIe Bandwidth — the model is layer-split across both cards, so activations cross PCIe between GPU 0 and GPU 1 every token; during prompt processing, expert weights held in host RAM may also be copied to the GPU per ubatch, which shows up as bursts. Both R9700s link at PCIe 5.0 x16 (~63 GB/s). Expert placement is decided by --fit, not by hand.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "Mbits/s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 4,
+        "x": 16,
+        "y": 9
+      },
+      "id": 206,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "pcie_bandwidth{gpu_id=\"1\"}",
+          "legendFormat": "GPU {{gpu_id}} PCIe Bandwidth (Mb/s)",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "PCIe Bandwidth (MoE Expert Transfer)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Die, hotspot, and memory temperatures, one line per GPU.\n\nKey signals:\n• Edge °C — die surface, generally the lowest reading.\n• Junction/Hotspot °C — hottest point on the die; throttling begins ~110°C, emergency shutdown ~115°C; keep below 95°C under sustained load.\n• Memory °C — GDDR6 temp; above 95°C memory clocks reduce, directly hurting throughput since VRAM bandwidth is the primary inference bottleneck.\n• Two cards side by side: the upper card usually runs hotter since it breathes the lower card's exhaust.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 85
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 4,
+        "x": 20,
+        "y": 9
+      },
+      "id": 207,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "gpu_edge_temperature{gpu_id=\"1\"}",
+          "legendFormat": "GPU {{gpu_id}} Edge °C",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "gpu_junction_temperature{gpu_id=\"1\"}",
+          "legendFormat": "GPU {{gpu_id}} Junction/Hotspot °C",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "gpu_memory_temperature{gpu_id=\"1\"}",
+          "legendFormat": "GPU {{gpu_id}} Memory °C",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "GPU Temperatures",
       "type": "timeseries"
     },
     {
@@ -861,7 +1609,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Prefill-phase tokens/sec — digesting the input prompt before generation starts.\n\nKey signals:\n• {{model}} tokens/sec — usually much faster than decode (100-500 tok/s). A slow prefill points to a very large context or KV-cache pressure; large file maps in agentic/architect workflows can take several seconds here.",
+      "description": "Prefill-phase tokens/sec — digesting new prompt tokens before generation starts (prompt tokens ÷ time spent on them; cached prefix tokens aren't counted).\n\nKey signals:\n• {{model}} tokens/sec — typically ~400-600 tok/s on fresh prompts, dropping to ~100-200 deep into a 100K+ context. ubatch-size (1024) trades prefill speed for VRAM. A long agentic turn that misses the prompt cache shows up here as a slow stretch.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -947,10 +1695,10 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "rate(llamacpp:prompt_tokens_total[1m])",
+          "expr": "rate(llamacpp:prompt_tokens_total[1m]) / rate(llamacpp:prompt_seconds_total[1m])",
           "legendFormat": "{{model}} tokens/sec",
           "range": true,
-          "refId": "B"
+          "refId": "A"
         }
       ],
       "title": "Prompt Processing Speed (prefill phase)",
@@ -961,7 +1709,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Decode-phase tokens/sec — what you experience as typing speed.\n\nKey signals:\n• {{model}} tokens/sec — per active router model (Baloza-v0.3, ninni-v0.1). Typical range 15-40 tok/s; a sustained drop signals GPU thermal throttling, VRAM pressure, PCIe saturation from MoE fetches, or RAM exhaustion causing swap.",
+      "description": "Decode-phase tokens/sec while generating (tokens predicted ÷ time spent predicting, so idle time doesn't drag it down) — what you experience as typing speed.\n\nKey signals:\n• {{model}} tokens/sec — typically ~18-23 tok/s for Qwen3.8-Flash-Next with ~20 layers' experts in host RAM, sliding down slowly as the context grows. Gaps are idle periods. A sustained drop at the same context length points to expert pages being evicted from RAM (see Model Pages & Major Faults), thermal throttling, or swap.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1047,10 +1795,10 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "llamacpp:tokens_predicted_seconds_total",
+          "expr": "rate(llamacpp:tokens_predicted_total[1m]) / rate(llamacpp:tokens_predicted_seconds_total[1m])",
           "legendFormat": "{{model}} tokens/sec",
           "range": true,
-          "refId": "B"
+          "refId": "A"
         }
       ],
       "title": "Token Generation Speed (decode phase)",
@@ -1061,7 +1809,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Smoothed generation throughput over a trailing 5-minute window.\n\nKey signals:\n• {{model}} avg tok/s (5m) — a less noisy view of decode speed than the instantaneous panel; use it to spot gradual degradation (thermal throttling, memory pressure) that a single spiky reading would hide.",
+      "description": "Decode speed smoothed over a trailing 5-minute window (same formula as the decode panel).\n\nKey signals:\n• {{model}} tok/s (5m avg) — a less noisy view of generation speed; use it to spot gradual degradation (context growth, thermal throttling, memory pressure) that a single spiky reading would hide.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1121,7 +1869,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 26
       },
@@ -1147,14 +1895,192 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "rate(llamacpp:tokens_predicted_total[5m])",
-          "legendFormat": "{{model}} avg tok/s (5m)",
+          "expr": "rate(llamacpp:tokens_predicted_total[5m]) / rate(llamacpp:tokens_predicted_seconds_total[5m])",
+          "legendFormat": "{{model}} tok/s (5m avg)",
           "range": true,
-          "refId": "B"
+          "refId": "A"
         }
       ],
-      "title": "Average Token Throughput (5m rate)",
+      "title": "Token Generation Speed (5m avg)",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Share of prompt tokens served from the slot's cached prefix instead of being processed again (5m window).\n\nKey signals:\n• {{model}} cache reuse — agentic clients resend the whole conversation every turn; ~90% reuse is what keeps long sessions fast. A sharp drop means the prefix changed (new conversation, edited history, or a client that rewrites earlier turns) and prefill has to redo that work.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 26
+      },
+      "id": 210,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "rate(llamacpp:prompt_tokens_cached_total[5m]) / (rate(llamacpp:prompt_tokens_cached_total[5m]) + rate(llamacpp:prompt_tokens_total[5m]))",
+          "legendFormat": "{{model}} cache reuse",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Prompt Cache Reuse",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Largest number of tokens a request has had in context since the model was loaded, against the 262,144-token limit (ctx-size).\n\nKey signals:\n• Orange from 200K, red from 250K — requests approaching the limit get truncated or rejected.\n• Deep contexts also slow decode and prefill, and grow the KV cache's share of the work. Resets when the model reloads.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 200000
+              },
+              {
+                "color": "red",
+                "value": 250000
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0,
+          "max": 262144
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 26
+      },
+      "id": 211,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "llamacpp:n_tokens_max",
+          "legendFormat": "{{model}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Context High-Water Mark (since model load)",
+      "type": "stat"
     },
     {
       "collapsed": false,
@@ -1174,7 +2100,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Host memory availability — critical because MoE experts live in RAM/GTT, not just VRAM.\n\nKey signals:\n• Available GB — free + reclaimable page cache; must stay above ~8GB or the kernel starts evicting MoE expert pages, forcing re-reads from disk and cratering inference speed.\n• Used GB — climbing steadily alongside Available dropping is the early warning sign.\n• Page Cache GB — includes model weight pages; shrinks under memory pressure as the kernel reclaims it.",
+      "description": "Host memory availability — critical because ~30 GiB of MoE experts live in RAM, not VRAM.\n\nKey signals:\n• Available GB — free + reclaimable page cache. The CPU experts are mmap'd file pages, so they count as reclaimable: Available looks healthy even while the kernel is evicting them.\n• Page Cache GB — holds the CPU experts plus the hot rows of the lazily-read n-gram table; a drop here during inference means expert pages are being evicted and will be re-read from NVMe (watch Major Faults).\n• Used GB — everything else (containers, desktop); growth here squeezes the page cache.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1294,7 +2220,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Any use of swap or its compressed front-end during inference is a red flag.\n\nKey signals:\n• Swap Used GB — must stay at 0 during inference; any activity means MoE expert weights are being paged to disk, which can tank generation speed from ~30 tok/s to <1 tok/s.\n• Zswap Compressed GB — a compressed RAM cache in front of swap; better than disk swap but still indicates memory pressure building.\n• Swap Cached GB — pages that were swapped out and read back in without being modified.",
+      "description": "Swap and its compressed front-end.\n\nKey signals:\n• Swap Used GB — a leftover footprint from a past memory-pressure event is harmless; what hurts is active churn (see Swap Activity). Heavy paging during inference can take generation from ~20 tok/s to a crawl.\n• Zswap Compressed GB — a compressed RAM cache in front of swap; better than disk swap but still indicates memory pressure building.\n• Swap Cached GB — pages that were swapped out and read back in without being modified.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1610,7 +2536,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 43
       },
@@ -1650,6 +2576,141 @@
         }
       ],
       "title": "Swap Activity (pages/sec)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "Whether the CPU-side MoE experts are actually staying in RAM.\n\nKey signals:\n• Mapped GB — memory-mapped file pages currently resident; with the model loaded this sits around 30-36 GB (the CPU experts plus hot n-gram rows). A drop means the kernel evicted model pages.\n• Major faults/s (right axis) — pages that had to be read back from disk. A few per second is the lazy n-gram table at work; hundreds per second during generation means experts are being re-read, and decode speed drops with it (e.g. 362/s took decode from ~18 to 11 tok/s).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "gbytes"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 43
+      },
+      "id": 212,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "node_memory_Mapped_bytes / 1024^3",
+          "legendFormat": "Mapped GB (model pages resident)",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "rate(node_vmstat_pgmajfault[1m])",
+          "legendFormat": "Major faults/s",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Model Pages in RAM & Major Faults",
       "type": "timeseries"
     },
     {
@@ -2172,7 +3233,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Read/write throughput on the NVMe drive backing /data, where models live.\n\nKey signals:\n• Read MB/s — a large burst here during model load is expected (reading a ~20GB model file off disk).\n• Write MB/s — should be near-idle outside model downloads; sustained writes during inference are unexpected.",
+      "description": "Read/write throughput on the NVMe drive backing /data, where models live.\n\nKey signals:\n• Read MB/s — a big burst on model load is expected (~84 GB of non-n-gram weights for a cold load). Afterwards, small steady reads during generation are normal: the 27 GB n-gram table is read lazily, row by row. Large sustained reads mean evicted expert pages are being re-read (RAM pressure).\n• Write MB/s — should be near-idle outside model downloads.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2832,7 +3893,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "gpu_ecc_uncorrect_total{gpu_id=\"0\"}",
+          "expr": "sum(gpu_ecc_uncorrect_total{gpu_id=~\"${gpu:regex}\"})",
           "legendFormat": "GPU ECC Uncorrectable Errors",
           "refId": "C"
         }
@@ -2845,7 +3906,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Which router-mode model (of models.ini) is currently resident and serving.\n\nKey signals:\n• Green tile = that model is currently loaded (up=1).\n• Red tile = not loaded (up=0) — expected for the inactive model under --models-max 1, not an error by itself.\n• If both tiles are red, the router has no model loaded at all.",
+      "description": "Whether the router's single preset (Baloza-v0.3 = Qwen3.8-Flash-Next) is resident.\n\nKey signals:\n• Green = loaded and serving.\n• Red = not loaded — normal after a llama restart until the first request (the router loads on demand, ~35-65 s), otherwise the model was unloaded or failed to load (check journalctl -u llama).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2948,6 +4009,34 @@
         "query": "prometheus",
         "refresh": 1,
         "type": "datasource"
+      },
+      {
+        "current": {
+          "text": "All",
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "definition": "query_result(gpu_total_vram > 4096)",
+        "description": "Discrete GPUs reported by amd-device-metrics (VRAM > 4 GB, so the CPU's integrated GPU is excluded).",
+        "includeAll": true,
+        "label": "GPU",
+        "multi": true,
+        "name": "gpu",
+        "options": [],
+        "query": {
+          "qryType": 3,
+          "query": "query_result(gpu_total_vram > 4096)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "/gpu_id=\"(\\d+)\"/",
+        "sort": 3,
+        "type": "query"
       }
     ]
   },
@@ -2957,7 +4046,7 @@
   },
   "timepicker": {},
   "timezone": "Europe/Amsterdam",
-  "title": "AI Stack — llama.cpp + RX 7900 XTX",
+  "title": "AI Stack — llama.cpp + AMD GPUs",
   "uid": "ai-stack-v1",
-  "version": 50
+  "version": 76
 }

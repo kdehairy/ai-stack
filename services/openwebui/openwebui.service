@@ -1,7 +1,7 @@
 [Unit]
 Description=Open WebUI chat interface (standalone container)
 Requires=docker.service
-After=docker.service network-online.target llama.service searxng.service qdrant.service
+After=docker.service network-online.target llama.service searxng.service
 Wants=network-online.target
 
 [Service]

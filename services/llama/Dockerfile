@@ -14,9 +14,9 @@ RUN apt-get update && apt-get install -y \
 
 ARG LLAMA_VERSION=master
 ARG GPU_TARGETS
+# No fallback to master: a mistyped tag must fail the build, not silently build something else.
 RUN git clone --depth=1 --branch ${LLAMA_VERSION} \
-    https://github.com/ggml-org/llama.cpp /build/llama.cpp 2>/dev/null || \
-    git clone --depth=1 https://github.com/ggml-org/llama.cpp /build/llama.cpp
+    https://github.com/ggml-org/llama.cpp /build/llama.cpp
 
 WORKDIR /build/llama.cpp
 
