@@ -15,7 +15,7 @@ ExecStart=/usr/bin/docker run --rm --name searxng \
   --log-opt max-size=10m \
   --log-opt max-file=3 \
   -u ${PUID}:${PGID} \
-  -e SEARXNG_SECRET=${SEARXNG_SECRET} \
+  -e SEARXNG_SECRET \
   --dns ${DNS_SERVERS} \
   -p ${BIND_HOST}:${SEARXNG_PORT}:8080 \
   -v ${BASE_DIR}/services/searxng/etc/searxng:/etc/searxng:ro \
