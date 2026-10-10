@@ -34,7 +34,9 @@ ExecStart=/usr/bin/docker run --rm --name llama \
   --models-max 1 \
   --metrics \
   -fa 1 \
-  --parallel 1 \
+  --parallel 2 \
+  --kv-unified \
+  --cache-ram 12288 \
   --jinja
 ExecStop=/usr/bin/docker stop llama
 Restart=on-failure
