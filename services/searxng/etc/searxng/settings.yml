@@ -5,10 +5,6 @@
 # (searx/settings_loader.py:update_settings), so upstream fixes (anti-bot
 # header/UA handling, engine updates, etc.) shipped in newer images keep
 # applying automatically. Only put real overrides below.
-#
-# Deployed to /data/ai-stack/searxng/config/settings.yml via `make install`
-# (see Makefile). Do not edit that copy directly - edit this file and
-# redeploy.
 
 use_default_settings:
   engines:
@@ -54,6 +50,19 @@ use_default_settings:
       - pubmed
       - semantic scholar
 
+# Upstream ships bing/google/google images with `disabled: true` (since the
+# 2026.9.x images); keep_only keeps them listed but doesn't re-enable them.
+# Without these the general category is just brave + duckduckgo, which are
+# routinely rate-limited/CAPTCHA'd -> zero results for OpenWebUI. Entries are
+# merged by name onto the image defaults.
+engines:
+  - name: bing
+    disabled: false
+  - name: google
+    disabled: false
+  - name: google images
+    disabled: false
+
 general:
   instance_name: "SearXNG"
   enable_metrics: true          # keep /stats for verification
@@ -72,8 +81,8 @@ search:
     SearxEngineCaptcha: 14400          # was 3600 - Google/Startpage captchas are sticky
 
 server:
-  # secret_key is injected via ${SEARXNG_SECRET} (docker-compose env), not
-  # stored here - see services/searxng/docker-compose.yml.
+  # secret_key is injected via the SEARXNG_SECRET env var (bare
+  # `-e SEARXNG_SECRET` in searxng.service), not stored here.
   limiter: false
   public_instance: false
   image_proxy: false
