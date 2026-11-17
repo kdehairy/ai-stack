@@ -279,7 +279,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Power draw per GPU against its configured cap.\n\nKey signals:\n• GPU n Instantaneous (W) — spiky moment-to-moment draw.\n• GPU n Average Package (W) — smoothed reading, easier to read the trend.\n• Power Cap PCI xx:xx (W) — each card's ceiling (R9700: 300W board power; check with rocm-smi); if Instantaneous rides the cap continuously, that GPU is power-limited.",
+      "description": "Power draw per GPU against its configured cap.\n\nKey signals:\n• GPU n Average Package (W) — smoothed package power reading (device-metrics-exporter v1.4+ no longer exports an instantaneous gpu_power_usage for the R9700).\n• Power Cap PCI xx:xx (W) — each card's ceiling (R9700: 300W board power; check with rocm-smi); if Average Package rides the cap continuously, that GPU is power-limited.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -385,17 +385,6 @@
       },
       "pluginVersion": "12.2.0",
       "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "gpu_power_usage{gpu_id=\"0\"}",
-          "legendFormat": "GPU {{gpu_id}} Instantaneous (W)",
-          "range": true,
-          "refId": "A"
-        },
         {
           "datasource": {
             "type": "prometheus",
@@ -1001,7 +990,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "Power draw per GPU against its configured cap.\n\nKey signals:\n• GPU n Instantaneous (W) — spiky moment-to-moment draw.\n• GPU n Average Package (W) — smoothed reading, easier to read the trend.\n• Power Cap PCI xx:xx (W) — each card's ceiling (R9700: 300W board power; check with rocm-smi); if Instantaneous rides the cap continuously, that GPU is power-limited.",
+      "description": "Power draw per GPU against its configured cap.\n\nKey signals:\n• GPU n Average Package (W) — smoothed package power reading (device-metrics-exporter v1.4+ no longer exports an instantaneous gpu_power_usage for the R9700).\n• Power Cap PCI xx:xx (W) — each card's ceiling (R9700: 300W board power; check with rocm-smi); if Average Package rides the cap continuously, that GPU is power-limited.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1107,17 +1096,6 @@
       },
       "pluginVersion": "12.2.0",
       "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "expr": "gpu_power_usage{gpu_id=\"1\"}",
-          "legendFormat": "GPU {{gpu_id}} Instantaneous (W)",
-          "range": true,
-          "refId": "A"
-        },
         {
           "datasource": {
             "type": "prometheus",
