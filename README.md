@@ -42,10 +42,13 @@ These are baked into the repo, not configurable:
 
 ### Prerequisites
 
+Host packages are listed in `requirements.txt`. Install the repo ones with
+`sed 's/#.*//' requirements.txt | xargs sudo pacman -S --needed`.
+
 - Docker
 - AMD ROCm 7.2+ at `/opt/rocm`; `rocminfo` recommended (`make menuconfig` uses it to list
   GPUs as checkboxes; without it, type UUIDs into the manual field)
-- `python-kconfiglib` (`make menuconfig`)
+- `python-kconfiglib` from the AUR (`paru -S python-kconfiglib`), needed by `make menuconfig`
 - nginx and syslog-ng installed (not yet configured)
 - Model files present under `/data/models/llamacpp` (see `services/llama/models.ini` for the
   expected layout)
