@@ -29,7 +29,7 @@ For how these pieces talk to each other, the full port table, and troubleshootin
 
 These are baked into the repo, not configurable:
 
-- **AMD GPU(s) supported by ROCm 7.0** — the llama image is compiled only for the `gfx`
+- **AMD GPU(s) supported by ROCm 7.2** — the llama image is compiled only for the `gfx`
   architectures in the `LLAMA_GPU_TARGETS` Kconfig option (auto-detected from `rocminfo` by
   `make menuconfig`); after a GPU swap, rerun `make menuconfig` and `make build-llama`
 - **Arch Linux host** — `nginx`/`syslog-ng` are pacman packages; the Makefile deploys into their
@@ -43,7 +43,7 @@ These are baked into the repo, not configurable:
 ### Prerequisites
 
 - Docker
-- AMD ROCm 7.0+ at `/opt/rocm`; `rocminfo` recommended (`make menuconfig` uses it to list
+- AMD ROCm 7.2+ at `/opt/rocm`; `rocminfo` recommended (`make menuconfig` uses it to list
   GPUs as checkboxes; without it, type UUIDs into the manual field)
 - `python-kconfiglib` (`make menuconfig`)
 - nginx and syslog-ng installed (not yet configured)

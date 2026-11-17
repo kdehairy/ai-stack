@@ -1,5 +1,5 @@
 # --- Stage 1: Build -----------------------------------------------------------
-FROM rocm/dev-ubuntu-24.04:7.0 AS builder
+FROM rocm/dev-ubuntu-24.04:7.2.4 AS builder
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -33,7 +33,7 @@ RUN test -n "${GPU_TARGETS}" || { echo "GPU_TARGETS build arg is required"; exit
              --target llama-server llama-cli llama-bench
 
 # --- Stage 2: Runtime ---------------------------------------------------------
-FROM rocm/dev-ubuntu-24.04:7.0 AS runtime
+FROM rocm/dev-ubuntu-24.04:7.2.4 AS runtime
 
 ARG AI_UID=1100
 ARG AI_GID=1100
