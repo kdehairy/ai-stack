@@ -29,9 +29,11 @@ menu "llama"
 
 config LLAMA_VERSION
 	string "llama.cpp git tag/branch to build"
-	default "b11375"
+	default "v1.0.0"
 	help
 	  Git tag/branch the llama-cpp-rocm:latest image is built from.
+	  Stable releases are tagged vX.Y.Z (since v1.0.0); bNNNNN tags are
+	  nightly pre-releases.
 	  Qwen3.8-Flash-Next (qwen4exp) needs b11375 or later.
 
 config MODELS_DIR
