@@ -1,0 +1,37 @@
+# Arch Linux packages the host needs before this stack can be configured, built and run.
+# Everything else (llama.cpp, ROCm userspace for inference, SearXNG, OpenWebUI, ...) ships inside
+# Docker images. Install with:
+#   sed 's/#.*//' requirements.txt | xargs sudo pacman -S --needed
+
+# --- Container runtime ---
+docker                  # dockerd + CLI: every unit is a `docker run`; make build/network
+
+# --- Build & configuration tooling ---
+make                    # Makefile driver
+gettext                # envsubst: renders unit templates, nginx vhosts, nftables.conf
+
+# --- Host-level services (bare-metal, configured by this repo) ---
+nginx                   # reverse proxy for *.cloud.home (make install-nginx)
+syslog-ng               # log forwarding to fluent-bit (make install-syslog-ng)
+logrotate               # rotates nginx *.json access logs (make install-logrotate)
+nftables                # firewall (make firewall)
+
+# --- AMD GPU ---
+linux-firmware-amdgpu   # amdgpu kernel driver firmware; without it there's no /dev/kfd for llama
+
+# --- Recommended ---
+rocminfo                # GPU checkbox discovery in menuconfig + UUID check in `make config`
+docker-buildx           # BuildKit builder; without it, `docker build` uses the deprecated legacy one
+
+# --- AUR (not installable with pacman; commented out so the command above works) ---
+# Install with an AUR helper: paru -S python-kconfiglib
+# python-kconfiglib     # `make menuconfig` (provides the menuconfig binary)
+
+# --- Base system (already present on any normal Arch install) ---
+bash
+coreutils
+gawk                    # scripts/gen-gpu-kconfig.sh, Makefile
+grep
+iproute2                # `ip route` in make firewall
+shadow                  # useradd/usermod in make config
+systemd

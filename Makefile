@@ -64,7 +64,7 @@ help:
 
 menuconfig:
 	@set -euo pipefail
-	command -v menuconfig >/dev/null || { echo "Error: menuconfig not found. Install with: sudo pacman -S python-kconfiglib"; exit 1; }
+	command -v menuconfig >/dev/null || { echo "Error: menuconfig not found. Install python-kconfiglib from the AUR (e.g. paru -S python-kconfiglib)"; exit 1; }
 	"$(BASE_DIR)/scripts/gen-gpu-kconfig.sh" > "$(BASE_DIR)/Kconfig.gpus"
 	BASE_DIR="$(BASE_DIR)" KCONFIG_CONFIG="$(DOTCONFIG)" menuconfig "$(KCONFIG)"
 
