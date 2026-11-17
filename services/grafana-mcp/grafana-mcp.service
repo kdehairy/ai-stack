@@ -24,10 +24,11 @@ ExecStart=/usr/bin/docker run --rm --name grafana-mcp \
   --health-timeout 5s \
   --health-retries 3 \
   --health-start-period 15s \
-  grafana/mcp-grafana:1.4.2 \
+  grafana/mcp-grafana:2.3.0 \
   --transport streamable-http \
   --address 0.0.0.0:8000 \
-  --allowed-hosts ${GRAFANA_MCP_DOMAIN},127.0.0.1:8000,localhost:8000,127.0.0.1:${GRAFANA_MCP_PORT},localhost:${GRAFANA_MCP_PORT}
+  --allowed-hosts ${GRAFANA_MCP_DOMAIN},127.0.0.1:8000,localhost:8000,127.0.0.1:${GRAFANA_MCP_PORT},localhost:${GRAFANA_MCP_PORT} \
+  --usage-stats=disabled
 ExecStop=/usr/bin/docker stop grafana-mcp
 Restart=on-failure
 RestartSec=30
