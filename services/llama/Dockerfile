@@ -20,6 +20,11 @@ RUN git clone --depth=1 --branch ${LLAMA_VERSION} \
 
 WORKDIR /build/llama.cpp
 
+# LLAMA_USE_PREBUILT_UI=OFF: build llama-server without its embedded web UI (OpenWebUI is
+# the chat front end; the API is unaffected). The prebuilt UI is downloaded from a Hugging
+# Face bucket keyed by build number, which the --depth=1 clone reports as "b1"; that 404s
+# and falls back to the newest "latest" UI, which an older tag's asset check can reject
+# (v1.0.0: "missing required asset(s): workbox[hash].js").
 RUN test -n "${GPU_TARGETS}" || { echo "GPU_TARGETS build arg is required"; exit 1; } \
     && cmake -B build \
     -DGGML_HIP=ON \
@@ -29,6 +34,7 @@ RUN test -n "${GPU_TARGETS}" || { echo "GPU_TARGETS build arg is required"; exit
     -DBUILD_SHARED_LIBS=OFF \
 		-DCMAKE_POSITION_INDEPENDENT_CODE=ON \
     -DCMAKE_BUILD_TYPE=Release \
+    -DLLAMA_USE_PREBUILT_UI=OFF \
     && cmake --build build --config Release -j$(nproc) \
              --target llama-server llama-cli llama-bench
 
