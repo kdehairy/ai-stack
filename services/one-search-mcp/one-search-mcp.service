@@ -26,7 +26,14 @@ ExecStart=/usr/bin/docker run --rm --name one-search-mcp \
   --health-timeout 5s \
   --health-retries 3 \
   --health-start-period 30s \
-  one-search-mcp-proxy:latest
+  one-search-mcp-proxy:latest \
+  --host=0.0.0.0 \
+  --port=3002 \
+  --allowed-host=${ONESEARCH_MCP_DOMAIN} \
+  --allowed-host=one-search-mcp:3002 \
+  --pass-environment \
+  --allow-origin=* \
+  -- node /app/dist/index.js
 ExecStop=/usr/bin/docker stop one-search-mcp
 Restart=on-failure
 RestartSec=30
