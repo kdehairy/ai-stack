@@ -16,7 +16,7 @@ ExecStart=/usr/bin/docker run --rm --name amd-device-metrics \
   --log-opt max-file=3 \
   --device /dev/dri:/dev/dri \
   --device /dev/kfd:/dev/kfd \
-  rocm/device-metrics-exporter:v1.1.0
+  rocm/device-metrics-exporter:v1.5.3
 ExecStop=/usr/bin/docker stop amd-device-metrics
 Restart=on-failure
 RestartSec=30
